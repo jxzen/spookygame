@@ -1,0 +1,3 @@
+# Shared-number registry. Real numbers are assigned at merge by the integrator; builders write symbolic placeholders.
+# name                  value   assigned-at
+save_version            —       unassigned

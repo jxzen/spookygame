@@ -1,0 +1,5 @@
+# id · element type · first-of-kind (y/n) · library entries used · had a "reproduced" entry (y/n) · rounds to approval · verdict · cause tag · director's reason (verbatim)
+# Deviations from the manual (manual §0: director wins, record it):
+D1 · 2026-11-12 · Companion files (research report, process post-mortem) absent; working from the manual alone.
+D2 · 2026-11-12 · Director approved YouTube fetching (yt-dlp) for private study, kept in source/, never shipped.
+D3 · 2026-11-12 · Element kind added beyond the manual's table: title-sequence (director, Q9).

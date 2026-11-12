@@ -1,0 +1,5 @@
+# One owner per shared system. Enforced by a check from Phase 1.
+# system                owner
+docs/references         integrator
+docs/anchors            integrator
+process/*               integrator

@@ -1,0 +1,6 @@
+# study copies never ship
+docs/references/**/source/*.mp4
+docs/references/**/source/*.webm
+docs/references/**/source/*.mkv
+docs/references/**/source/*.wav
+docs/references/**/source/*.flac
