@@ -8,7 +8,7 @@ Every borrowed mechanism passes through this sheet before we build our version. 
 | Players | Single player | Director, Q1 |
 | Scope | The first mission only, playable in 5–10 minutes | Director, t2: "Focus on only making the first mission fit into a 5-10 minute gameplay chunk" |
 | Jam theme | "Director's cut". Make it extra epic | Director, t6 |
-| Art style | Painted backgrounds, flat animated characters, Spirited Away palette. Painted medium over digital art. No film asset or character enters the build | Director, batch-1 pick (Spirited Away) and Q3 |
+| Art style | Silent Hill / Alan Wake: black, white, grey, red; fog; real shadows from a carried light. Spirited Away reading reversed | Director, probe 01 feedback and mid-probe-02 message |
 | Animation | Hand-drawn-film motion, studied from Spirited Away | Director, Q3 |
 | Music | Ominous epic orchestral base (anchor: "Paul's Dream"), plus solo instruments from the region of each mission | Director, batch-1 pick and reason |
 | Title sequence | Clean imagery centred on the main character; a warm-up into the mission (anchor: Skyfall main titles; second reading to study: Archer season 1 intro) | Director, batch-1 pick |

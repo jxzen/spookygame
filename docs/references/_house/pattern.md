@@ -47,3 +47,27 @@ Each entry: name, problem, rule, reason, good example, bad example. The director
 ## H7. Make it extra epic
 - Reason: director, tone t6: "the theme is director's cut, so make it extra epic"
 - Rule: when two options are otherwise equal, take the more cinematic one. Judged two-up against the title-sequence anchor.
+
+## H5 (REVISED 2026-11-12). Monochrome dread, red accents, real shadows
+- Problem: probe 01's painted, cartoon look was "not spooky enough".
+- Rule: black, white and grey world; red is the only colour and marks danger, blood or the way forward. A light source casts real shadows, and darkness is the default. No cartoon outlines on the world.
+- Reason: director, probe 01: "the spirited away aesthetic isnt spooky enough. can we switch to silent hill or alanwake style aesthetic with black/white/grey/red color scheme and shadows"; chat: "please change to be more scary and have less spirited away/cartoon vibe"
+- Good: to be fetched and picked: Silent Hill 2 (remake) screenshots, Alan Wake 2 trailer frames.
+- Bad: docs/anchors/environment/rejected/probe01-street.png
+
+## H6 (REVISED). Strings plus koto
+- Rule: an orchestral string base, with a Japanese koto for highlights and solos.
+- Reason: director, probe 01: "keep the orchestra string instruments. add a spooky japanese koto highlights/solo"
+
+## H8. The antagonist changes the level
+- Rule: the antagonist's presence must alter the space (lights, fog, surfaces, sound), not only chase the player.
+- Reason: director, probe 01: "bad guy needs to be more scary and impact the level."
+
+## H9. Every probe is playable
+- Rule: a probe has objectives, a threat and a fail state; it is never only a walk-through.
+- Reason: director, probe 01: "no gameplay yet. expand upon it please"
+
+## H10. The world shift: impossible architecture
+- Rule: the dimension shift draws on three readings: the Inception city fold (space bends over the player), the Infinity Castle (endless Japanese interiors that reconfigure: rooms rotate and stack, floors become walls), and Backrooms (liminal, endless, humming rooms that feel wrong). It stays rare (director, t3).
+- Reason: director, mid-probe-02 message: "for the world-shifting mechanic. use references of the inception movie, demon slayer newest movie w/ castle, backrooms movie. use silent hill graphics to make more spooky. have setting be in japan."
+- Evidence: Inception clips fetched (vfx/inception-city-fold, vfx/inception-final-kick); Infinity Castle and Backrooms clips fetching 2026-11-12.
