@@ -1,9 +1,9 @@
 # Open weak spots (offered to the director as decisions)
 
-1. Platform, input and session length are undecided. They shape constraints.md and the HUD and feel references.
-2. Core verb undecided: is the dimension jump constant traversal or a rare set-piece act?
-3. Tone split: epic spy swagger against slow horror dread. The pacing pick decides how they alternate.
-4. "necromancer" in Q2 is read as William Gibson's *Neuromancer* (inference). Confirm.
-5. "Dark Matter" is read as Blake Crouch's novel or its TV adaptation (inference). Confirm which, since the TV series gives us clips.
-6. No prior anchors (Q4 blank): picked references act as anchors until Phase 3.
-7. The engine is unchosen; the folder name hints at a game jam. Is there a deadline or a required engine?
+1. Prototype stack undecided. Unreal is the end goal, and "build it for prototyping for now" could mean (a) prototype in Unreal from day one, or (b) a faster throwaway stack such as a browser build, then port.
+2. "Like a dimension shift in inception" is ambiguous: the folding city, the layered dream levels, or the "kick" between them? Batch 2 shows clips.
+3. "Spirited Away palette and painted medium" in a first-person 3D engine is the hardest technical risk in the project. Phase 2 should study it first.
+4. Neuromancer and Dark Matter are novels: no media to capture, only text. Study would be from short excerpts or our own summary, labelled recall unless we hold the book.
+5. Archer season 1 intro: added by the director; to fetch.
+6. Platform assumed PC from KBM/controller and Unreal; confirm.
+7. All batch-1 readings were proposed by Claude except Archer. Manual §14: ask the director for distant references by hand.

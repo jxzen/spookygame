@@ -70,3 +70,20 @@ Undecided by rule: mechanics come after the feeling and the reference picks. Ope
 | 14 | Title sequence | Director, Q9: the game should open like a spy-film title sequence |
 
 Quests and progression (the journey home) may become a kind of its own once the core loop exists.
+
+## Update after batch 1 (2026-11-12, director's words verbatim)
+
+> **t1** kbm support or controller.
+> **t2** Focus on only making the first mission fit into a 5-10 minute gameplay chunk
+> **t3** make it happen more rarely, like a dimension shift in inception.
+> **t4** spy action with horror interludes
+> **t5** yes i meant neuromancer, and blake crouch's novel.
+> **t6** unreal engine is the end goal but build it for prototytping for now. the theme is director's cut, so make it extra epic
+
+What changes:
+- **Scope** is one mission of 5–10 minutes. With that length, the first five minutes and pacing cover most of the game.
+- **Tone** resolves to spy action as the base, with horror as interludes. The epic peaks are the title sequence and the dimension shift.
+- **The dimension shift is rare**: one or two set-piece moments in the mission, not a traversal verb.
+- **Jam theme "director's cut"**: make it extra epic.
+
+Picked readings: title sequence = Skyfall main titles; environment = Spirited Away; music = Paul's Dream (Dune).

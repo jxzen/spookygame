@@ -22,3 +22,28 @@ Each entry: name, problem, rule, reason, good example, bad example. The director
 - Reason: director, Q9: "make the game feel epic like a james bond intro".
 - Good: to be set by the title-sequence pick.
 - Bad: to be set by the first rejection.
+
+## H4. The hero is the subject of the title sequence
+- Problem: title sequences can drift into abstract imagery that doesn't show who we are.
+- Rule: imagery stays clean and centred on the main character; the sequence works as a warm-up into the mission.
+- Reason: director, batch 1 pick (Skyfall): "clean imagery with focus on main character. nice warmup. another good reference is archer s1 intro scene"
+- Good: the director's pick, Skyfall main titles (docs/references/title-sequence/skyfall-main-titles).
+- Bad: none yet.
+
+## H5. Painted, not rendered
+- Problem: stylised 3D often reads as digital art, which is the wrong medium for this game.
+- Rule: surfaces read as painted backgrounds; characters read as flat animated shapes; colour is taken from the Spirited Away palette study.
+- Reason: director, batch 1 pick (Spirited Away): "more animated cartoony style preferred. spirited away color pallete, and the painted medium over digital art is preferred."
+- Good: docs/references/environment/spirited-away.
+- Bad (rejected readings): Dishonored 2, Ghostwire: Tokyo. Their painterly but digital look was passed over.
+
+## H6. The score travels with the spy
+- Problem: a generic epic score ignores where the player is.
+- Rule: an ominous orchestral base (Paul's Dream reading) plus solo instruments from the region the mission is set in.
+- Reason: director, batch 1 pick: "the orchestra + foreign instruments based on where the american spy is lost in a foreign country would be really cool"
+- Good: docs/references/audio/zimmer-pauls-dream.
+- Bad: none yet.
+
+## H7. Make it extra epic
+- Reason: director, tone t6: "the theme is director's cut, so make it extra epic"
+- Rule: when two options are otherwise equal, take the more cinematic one. Judged two-up against the title-sequence anchor.
