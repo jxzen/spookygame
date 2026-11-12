@@ -7,3 +7,5 @@
 5. Archer season 1 intro: added by the director; to fetch.
 6. Platform assumed PC from KBM/controller and Unreal; confirm.
 7. All batch-1 readings were proposed by Claude except Archer. Manual §14: ask the director for distant references by hand.
+8. Style probe 01 skips the study loop (no "reproduced" entries). Its palette and score are inference, not measurement. Treat the verdict as a direction check, not an anchor.
+9. The probe runs in three.js in a browser. Nothing in it carries over to Unreal except the rules it validates.
