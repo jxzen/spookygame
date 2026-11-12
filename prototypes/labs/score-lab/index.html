@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Score Lab</title>
+<style>
+  :root { --bg: #0d0d0e; --panel: #17171a; --line: #2a2a2f; --text: #e6e3de; --dim: #8f8b85; --red: #c8282d; --on: #3a3a41; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 20px; margin: 0 0 4px; letter-spacing: .02em; }
+  p.sub { margin: 0 0 20px; color: var(--dim); }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; margin-bottom: 14px; }
+  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); margin: 0 0 10px; font-weight: 600; }
+  button { background: #222226; color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; font: inherit; cursor: pointer; margin: 0 6px 6px 0; }
+  button:hover { border-color: #55555c; }
+  button.on { background: var(--on); border-color: #77777f; }
+  button.start { background: var(--red); border-color: var(--red); font-weight: 600; padding: 10px 18px; }
+  button.start.on { background: #222226; border-color: var(--line); }
+  .row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  input[type=range] { width: min(360px, 100%); accent-color: var(--red); }
+  .readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+  .cell { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; }
+  .cell b { display: block; font-size: 11px; color: var(--dim); font-weight: 500; text-transform: uppercase; letter-spacing: .06em; }
+  .cell span { font-size: 22px; font-variant-numeric: tabular-nums; }
+  .prog { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .prog div { border: 1px solid var(--line); border-radius: 4px; padding: 4px 8px; color: var(--dim); font-variant-numeric: tabular-nums; }
+  .prog div.cur { color: var(--text); border-color: var(--red); }
+  pre { white-space: pre-wrap; word-break: break-word; font: 12px/1.4 ui-monospace, Consolas, monospace; color: var(--dim); margin: 8px 0 0; max-height: 360px; overflow: auto; }
+  .note { color: var(--dim); font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Score Lab</h1>
+  <p class="sub">Mission-1 procedural score (MUSIC-01). One clock, key D: strings in D Phrygian, koto in D miyako-bushi. Spec: docs/design/score-spec.md</p>
+
+  <section>
+    <div class="row"><button class="start" id="start">Start</button><span class="note" id="status">Audio is off.</span></div>
+  </section>
+
+  <section>
+    <h2>State (changes on the next bar line; hunt on the next beat)</h2>
+    <div id="states"></div>
+    <h2 style="margin-top:10px">Intensity</h2>
+    <div class="row"><input type="range" id="int" min="0" max="1" step="0.01" value="0.35"><span id="intv">0.35</span></div>
+  </section>
+
+  <section>
+    <h2>Stingers (quantised to the next beat; shift to a bar line)</h2>
+    <div id="stings"></div>
+  </section>
+
+  <section>
+    <h2>Now playing</h2>
+    <div class="readout">
+      <div class="cell"><b>State</b><span id="r-state">–</span></div>
+      <div class="cell"><b>Chord</b><span id="r-chord">–</span></div>
+      <div class="cell"><b>Bar . beat</b><span id="r-bar">–</span></div>
+      <div class="cell"><b>BPM</b><span id="r-bpm">–</span></div>
+      <div class="cell"><b>Intensity</b><span id="r-int">–</span></div>
+    </div>
+    <div class="prog" id="prog"></div>
+    <p class="note" id="r-pending"></p>
+  </section>
+
+  <section>
+    <h2>Offline check</h2>
+    <button id="offline">Render 100 s offline tour</button>
+    <span class="note">Renders explore, tension, hunt (with a yokai sting), hide, shift, castle and escape with OfflineAudioContext. Reports LUFS, true peak and out-of-key notes. Headless: open with ?offline=1</span>
+    <pre id="result"></pre>
+  </section>
+</main>
+
+<script src="../../shared/score.js"></script>
+<script>
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  let ac = null, timer = null;
+  const H = Score._harmony;
+
+  // ---------- live audition ----------
+  Score.STATES.forEach(n => { const b = document.createElement('button'); b.textContent = n; b.dataset.state = n; b.onclick = () => { if (!ac) start(); Score.setState(n); }; $('states').appendChild(b); });
+  Score.STINGS.forEach(n => { const b = document.createElement('button'); b.textContent = n; b.onclick = () => { if (ac) Score.sting(n); }; $('stings').appendChild(b); });
+  $('int').oninput = e => { $('intv').textContent = (+e.target.value).toFixed(2); Score.setIntensity(+e.target.value); };
+  $('start').onclick = () => { if (ac) stop(); else start(); };
+
+  function start() {
+    const C = window.AudioContext || window.webkitAudioContext;
+    ac = new C(); Score.init(ac, ac.destination); Score.setIntensity(+$('int').value); Score.setState('explore');
+    const loop = () => { if (!ac) return; Score.update(); draw(); requestAnimationFrame(loop); };
+    requestAnimationFrame(loop); timer = setInterval(() => Score.update(), 50); // interval keeps time when the tab is hidden
+    $('start').textContent = 'Stop'; $('start').classList.add('on'); $('status').textContent = 'Playing. Sample rate ' + ac.sampleRate + ' Hz.';
+  }
+  function stop() { Score.stop(); clearInterval(timer); const a = ac; ac = null; setTimeout(() => a.close(), 600); $('start').textContent = 'Start'; $('start').classList.remove('on'); $('status').textContent = 'Audio is off.'; }
+  let lastProgState = null;
+  function draw() {
+    const i = Score.getInfo(); if (!i) return;
+    $('r-state').textContent = i.state; $('r-chord').textContent = i.chord; $('r-bar').textContent = i.bar + ' . ' + i.beat; $('r-bpm').textContent = i.bpm; $('r-int').textContent = i.intensity.toFixed(2);
+    $('r-pending').textContent = i.pending ? 'Pending: ' + i.pending : '';
+    document.querySelectorAll('#states button').forEach(b => b.classList.toggle('on', b.dataset.state === i.state));
+    const st = H.STATES[i.state];
+    if (lastProgState !== i.state) { lastProgState = i.state; $('prog').innerHTML = st.prog.map(([c, n]) => '<div>' + c + (n > 1 ? ' ×' + n : '') + '</div>').join(''); }
+    // highlight the current chord step from the bar number
+    let bar = (i.bar - 1), total = st.prog.reduce((a, p) => a + p[1], 0), b = ((bar % total) + total) % total, k = 0;
+    for (; k < st.prog.length; k++) { if (b < st.prog[k][1]) break; b -= st.prog[k][1]; }
+    [...$('prog').children].forEach((d, j) => d.classList.toggle('cur', j === k));
+  }
+
+  // ---------- offline render + measurement ----------
+  const TOUR = [
+    [0, 'state', 'explore'], [0, 'int', .3], [18, 'int', .75], [30, 'state', 'tension'], [30, 'int', .5],
+    [44, 'state', 'hunt'], [44, 'int', .8], [50, 'sting', 'yokai'], [58, 'state', 'hide'], [58, 'int', .2],
+    [66, 'sting', 'shift'], [70, 'state', 'castle'], [70, 'int', .4], [84, 'state', 'escape'], [84, 'int', .8]
+  ];
+  const SEGMENTS = [['explore .3', 2, 18], ['explore .75', 20, 30], ['tension', 32, 44], ['hunt .8', 46, 58], ['hide', 60, 68], ['castle', 72, 84], ['escape', 86, 100]];
+
+  function kWeight(x, sr) { // ITU-R BS.1770-4 K-weighting (coefficients derived for any sample rate)
+    const f0 = 1681.974450955533, G = 3.999843853973347, Q = 0.7071752369554196, K = Math.tan(Math.PI * f0 / sr), Vh = Math.pow(10, G / 20), Vb = Math.pow(Vh, 0.4996667741545416);
+    const a0 = 1 + K / Q + K * K, b = [(Vh + Vb * K / Q + K * K) / a0, 2 * (K * K - Vh) / a0, (Vh - Vb * K / Q + K * K) / a0], a = [2 * (K * K - 1) / a0, (1 - K / Q + K * K) / a0];
+    const f1 = 38.13547087602444, Q1 = 0.5003270373238773, K1 = Math.tan(Math.PI * f1 / sr), a01 = 1 + K1 / Q1 + K1 * K1, a1 = [2 * (K1 * K1 - 1) / a01, (1 - K1 / Q1 + K1 * K1) / a01];
+    const y = new Float32Array(x.length); let x1 = 0, x2 = 0, y1 = 0, y2 = 0, z1 = 0, z2 = 0, w1 = 0, w2 = 0;
+    for (let n = 0; n < x.length; n++) {
+      const s = b[0] * x[n] + b[1] * x1 + b[2] * x2 - a[0] * y1 - a[1] * y2; x2 = x1; x1 = x[n]; y2 = y1; y1 = s;
+      const h = (s - 2 * z1 + z2) - a1[0] * w1 - a1[1] * w2; z2 = z1; z1 = s; w2 = w1; w1 = h; y[n] = h;
+    }
+    return y;
+  }
+  function loudness(chs, sr, t0, t1) { // gated integrated loudness over [t0, t1)
+    const kw = chs.map(c => kWeight(c.subarray(Math.floor(t0 * sr), Math.floor(t1 * sr)), sr));
+    const blk = Math.floor(0.4 * sr), hop = Math.floor(0.1 * sr), z = [];
+    for (let s = 0; s + blk <= kw[0].length; s += hop) { let sum = 0; for (const c of kw) { let e = 0; for (let i = s; i < s + blk; i++) e += c[i] * c[i]; sum += e / blk; } z.push(sum); }
+    const L = v => -0.691 + 10 * Math.log10(v);
+    const abs = z.filter(v => L(v) > -70); if (!abs.length) return -Infinity;
+    const rel = L(abs.reduce((a, v) => a + v, 0) / abs.length) - 10, g = abs.filter(v => L(v) > rel);
+    const maxS = Math.max(...z.map(L));
+    return { I: +L(g.reduce((a, v) => a + v, 0) / g.length).toFixed(1), maxMomentary: +maxS.toFixed(1) };
+  }
+  function truePeak(chs) { // 4x oversampled (windowed sinc, 32 taps per phase)
+    const taps = 16, ph = [];
+    for (let p = 1; p < 4; p++) { const fr = p / 4, h = []; for (let k = -taps + 1; k <= taps; k++) { const x = k - fr, w = 0.5 + 0.5 * Math.cos(Math.PI * x / taps); h.push((x === 0 ? 1 : Math.sin(Math.PI * x) / (Math.PI * x)) * w); } ph.push(h); }
+    let pk = 0;
+    for (const c of chs) for (let n = taps; n < c.length - taps; n++) { const v = Math.abs(c[n]); if (v > pk) pk = v; if (v < 0.25) continue;
+      for (const h of ph) { let s = 0; for (let k = 0; k < h.length; k++) s += c[n - taps + 1 + k] * h[k]; if (Math.abs(s) > pk) pk = Math.abs(s); } }
+    return +(20 * Math.log10(pk)).toFixed(2);
+  }
+  function wavBase64(chs, sr) {
+    const n = chs[0].length, buf = new ArrayBuffer(44 + n * 4), dv = new DataView(buf); let o = 0;
+    const str = s => { for (const ch of s) dv.setUint8(o++, ch.charCodeAt(0)); }, u32 = v => { dv.setUint32(o, v, true); o += 4; }, u16 = v => { dv.setUint16(o, v, true); o += 2; };
+    str('RIFF'); u32(36 + n * 4); str('WAVE'); str('fmt '); u32(16); u16(1); u16(2); u32(sr); u32(sr * 4); u16(4); u16(16); str('data'); u32(n * 4);
+    for (let i = 0; i < n; i++) for (const c of chs) { dv.setInt16(o, Math.max(-1, Math.min(1, c[i])) * 32767, true); o += 2; }
+    let bin = ''; const u8 = new Uint8Array(buf); for (let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+    return btoa(bin);
+  }
+  function coherence(notes) { // every note must belong to its state's scale; pad notes must be chord tones
+    const bad = [], byInst = {};
+    for (const n of notes) {
+      byInst[n.inst] = (byInst[n.inst] || 0) + 1;
+      const st = H.STATES[n.state]; const allowed = new Set(st.scale); if (n.state === 'castle') allowed.add(1);
+      const chordPcs = H.CH[n.chord] ? H.CH[n.chord].t : [];
+      if (!allowed.has(n.pc)) bad.push(n.inst + ' ' + H.PCN[n.pc] + ' @' + n.t + 's in ' + n.state + '/' + n.chord);
+      else if (n.inst === 'pad' && n.m < 80 && !chordPcs.includes(n.pc) && n.state !== 'escape') bad.push('pad non-chord ' + H.PCN[n.pc] + ' @' + n.t + ' ' + n.chord);
+    }
+    return { notesByInstrument: byInst, outOfKey: bad.length, examples: bad.slice(0, 8) };
+  }
+
+  window.scoreOfflineRender = async function (opts) {
+    opts = opts || {};
+    const seconds = opts.seconds || 100, sr = 48000, errors = [];
+    const off = new OfflineAudioContext(2, seconds * sr, sr);
+    Score.init(off, off.destination); const S = Score._debug(true);
+    const plan = (opts.plan || TOUR).slice().sort((a, b) => a[0] - b[0]); let pi = 0;
+    try {
+      for (let t = 0; t < seconds; t += 0.05) {
+        while (pi < plan.length && plan[pi][0] <= t) { const [, k, v] = plan[pi++]; S.vnow = t; if (k === 'state') Score.setState(v); else if (k === 'int') Score.setIntensity(v); else Score.sting(v); }
+        Score.update(t);
+      }
+    } catch (e) { errors.push(String(e && e.stack || e)); }
+    const events = S.events.slice(), notes = S.notes.slice();
+    const t0 = performance.now(); const buf = await off.startRendering(); const renderMs = Math.round(performance.now() - t0);
+    const chs = [buf.getChannelData(0), buf.getChannelData(1)];
+    const res = { seconds, renderMs, errors, integrated: loudness(chs, sr, 0, seconds), truePeak_dBTP: truePeak(chs), segments: {}, coherence: coherence(notes) };
+    for (const [n, a, b] of SEGMENTS) if (b <= seconds) res.segments[n] = loudness(chs, sr, a, b).I;
+    // state changes and stings must land on the beat grid (equal to a scheduled beat time)
+    const beats = new Set(S.allBeatTimes || []);
+    res.stateChanges = S._stateLog; res.stingLog = S._stingLog;
+    if (opts.wav) res.wav = wavBase64(chs, sr);
+    return res;
+  };
+
+  // record all state/sting/beat times during offline render for the grid check
+  const _push = Array.prototype.push;
+  (function hookEvents() {
+    const origInit = Score.init;
+    Score.init = function (c, d) {
+      const r = origInit.call(Score, c, d); const S = Score._debug(false);
+      S._stateLog = []; S._stingLog = []; let lastBeat = 0, spbAt = 0;
+      const ev = S.events; ev.push = function (e) {
+        if (e.type === 'beat') { lastBeat = e.t; spbAt = 60 / e.bpm; }
+        if (e.type === 'state') S._stateLog.push({ t: +e.t.toFixed(3), state: e.state });
+        if (e.type === 'sting') S._stingLog.push({ t: +e.t.toFixed(3), name: e.name, onBeat: Math.abs(e.t - lastBeat) < 1e-6 });
+        return _push.apply(this, arguments);
+      };
+      return r;
+    };
+  })();
+
+  $('offline').onclick = async () => {
+    $('result').textContent = 'Rendering...';
+    if (ac) stop();
+    try { const r = await window.scoreOfflineRender(); $('result').textContent = JSON.stringify(r, null, 1); }
+    catch (e) { $('result').textContent = 'ERROR ' + (e && e.stack || e); }
+  };
+
+  const q = new URLSearchParams(location.search);
+  if (q.has('offline')) {
+    window.addEventListener('error', e => { $('result').textContent += '\nUncaught ' + e.message; });
+    window.scoreOfflineRender({ seconds: +(q.get('seconds') || 100), wav: q.has('wav') }).then(r => {
+      const w = r.wav; delete r.wav; $('result').textContent = 'OFFLINE_RESULT ' + JSON.stringify(r);
+      if (w) { const p = document.createElement('pre'); p.id = 'wav'; p.textContent = 'WAV_BASE64 ' + w + ' END_WAV'; document.body.appendChild(p); }
+      document.body.dataset.done = '1';
+    }).catch(e => { $('result').textContent = 'OFFLINE_ERROR ' + (e && e.stack || e); });
+  }
+})();
+</script>
+</body>
+</html>

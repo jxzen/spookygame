@@ -1,0 +1,4 @@
+URL: https://commons.wikimedia.org/wiki/File:The_Big_Sleep_trailer_(1946).webm
+Direct: https://upload.wikimedia.org/wikipedia/commons/c/c4/The_Big_Sleep_trailer_%281946%29.webm
+Fetched: 2026-11-12 (curl). Frames frame_NNNNN.jpg extracted headless with Blender VSE, 640x480 (source 1480x1080, slightly squashed), NNNNN = source frame at 23.976 fps.
+Licence note: Wikimedia Commons-hosted trailer (re-release trailer); listed as public domain trailer per Commons category, licence field not re-verified this session. Study only. Actor likeness must not be copied.

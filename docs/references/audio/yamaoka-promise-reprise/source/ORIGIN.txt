@@ -1,0 +1,6 @@
+Title: Promise (Reprise), Akira Yamaoka, SILENT HILL 2 (Original Soundtrack), released 2001-10-03
+URL: https://www.youtube.com/watch?v=ZwLvcaDMhU8
+Channel: AKIRA YAMAOKA (official "Provided to YouTube by Rightsscale" auto-generated Topic upload, (P) Konami Digital Entertainment)
+Fetched: 2026-11-12 with yt-dlp -f ba -x --audio-format wav (48 kHz stereo, 105 s)
+Files: track.wav, track.info.json, spectrogram.png (ffmpeg showspectrumpic, log freq 20 Hz-6 kHz), ebur128-summary.txt, analysis-chroma-tempo.txt (output of Ana.cs: Goertzel chroma MIDI 48-88, bass MIDI 28-52, onset-flux autocorrelation tempo).
+Use: study only. Never ship, never copy melody.

@@ -1,0 +1,17 @@
+﻿duration 105.0s
+   0.0-   8.2s  top: G:1.00 Eb:0.33 D:0.32 C:0.18 E:0.14  | bass: E1 / A2
+   8.2-  16.3s  top: G:1.00 D:0.40 C:0.38 Eb:0.26 E:0.25  | bass: A2 / E1
+  16.3-  24.5s  top: G:1.00 A:0.82 D:0.45 C:0.43 Bb:0.38  | bass: E1 / F2
+  24.5-  32.7s  top: G:1.00 A:0.75 D:0.59 C:0.45 Bb:0.38  | bass: A2 / E1
+  32.7-  40.9s  top: G:1.00 A:0.63 D:0.55 C:0.34 Bb:0.33  | bass: A2 / E1
+  40.9-  49.0s  top: G:1.00 A:0.86 D:0.67 C:0.52 Bb:0.47  | bass: A2 / E1
+  49.0-  57.2s  top: G:1.00 A:0.88 D:0.61 C:0.45 Bb:0.42  | bass: A2 / E1
+  57.2-  65.4s  top: G:1.00 D:0.70 A:0.56 C:0.30 Bb:0.29  | bass: A2 / F2
+  65.4-  73.6s  top: G:1.00 D:0.43 C:0.31 Bb:0.30 Eb:0.22  | bass: A2 / F2
+  73.6-  81.7s  top: G:1.00 D:0.41 C:0.35 Bb:0.27 Eb:0.20  | bass: A2 / F2
+  81.7-  89.9s  top: G:1.00 D:0.35 C:0.30 Bb:0.24 Eb:0.15  | bass: A2 / F2
+  89.9-  98.1s  top: G:1.00 Eb:0.37 D:0.32 C:0.19 E:0.16  | bass: E1 / Bb2
+GLOBAL chroma: G:1.00 D:0.48 A:0.43 C:0.35 Bb:0.31 Eb:0.27 E:0.15 F:0.11 Ab:0.05 F#:0.05 C#:0.04 B:0.03
+KEY (Krumhansl): G minor 0.87, G major 0.75, C major 0.53
+TEMPO candidates (autocorr): 148.0, 148.5, 149.0, 149.5, 150.0, 150.5
+

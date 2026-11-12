@@ -1,0 +1,2 @@
+All files retrieved 2026-11-12 via curl from upload.wikimedia.org. Licence/PD status as stated on the Wikimedia Commons file page (read via the Commons API, extmetadata LicenseShortName, 2026-11-12).
+masayoshi-hitotsume-kozo-c1788.jpg  https://upload.wikimedia.org/wikipedia/commons/1/14/Masayoshi_Hitotsume-kozo.jpg  page: https://commons.wikimedia.org/wiki/File:Masayoshi_Hitotsume-kozo.jpg  Kitao Masayoshi, Bakemono Chakutocho, c.1788. Public domain.  retrieved 2026-11-12

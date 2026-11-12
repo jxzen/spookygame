@@ -1,0 +1,2 @@
+All files retrieved 2026-11-12 via curl from upload.wikimedia.org. Licence/PD status as stated on the Wikimedia Commons file page (read via the Commons API, extmetadata LicenseShortName, 2026-11-12).
+sekien-tenome-c1781.jpg  https://upload.wikimedia.org/wikipedia/commons/2/29/SekienTenome.jpg  page: https://commons.wikimedia.org/wiki/File:SekienTenome.jpg  Toriyama Sekien, Gazu Hyakki Yagyo (1776; Commons dates c.1781). Public domain.  retrieved 2026-11-12

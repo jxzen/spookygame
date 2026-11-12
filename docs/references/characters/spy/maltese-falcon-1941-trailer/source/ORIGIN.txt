@@ -1,0 +1,4 @@
+URL: https://commons.wikimedia.org/wiki/File:The_Maltese_Falcon_trailer(1941).webm
+Direct: https://upload.wikimedia.org/wikipedia/commons/4/44/The_Maltese_Falcon_trailer%281941%29.webm
+Fetched: 2026-11-12 (curl). Frames frame_NNNNN.jpg extracted headless with Blender VSE (prototypes/assets/spy/src/extract_frames.py), 640x480, NNNNN = source frame at 29.97 fps.
+Licence note: hosted on Wikimedia Commons as a public-domain US theatrical trailer (pre-1964 trailer, no notice/renewal). Commons page licence field not re-checked in this session (API rate-limited) - verify before any shipping use. Study only; nothing shipped from it. Actor likeness must not be copied.

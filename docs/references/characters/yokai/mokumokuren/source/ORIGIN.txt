@@ -1,0 +1,2 @@
+All files retrieved 2026-11-12 via curl from upload.wikimedia.org. Licence/PD status as stated on the Wikimedia Commons file page (read via the Commons API, extmetadata LicenseShortName, 2026-11-12).
+sekien-mokumokuren-1780.jpg  https://upload.wikimedia.org/wikipedia/commons/1/1b/SekienMokumokuren.jpg  page: https://commons.wikimedia.org/wiki/File:SekienMokumokuren.jpg  Toriyama Sekien (1712-1788), Konjaku Hyakki Shui, 1780. Public domain (artist died 1788).  retrieved 2026-11-12

@@ -1,0 +1,6 @@
+Title: Null Moon, Akira Yamaoka, SILENT HILL 2 (Original Soundtrack), released 2001-10-03
+URL: https://www.youtube.com/watch?v=bGZN5m3qs_c
+Channel: AKIRA YAMAOKA (official Rightsscale auto-generated Topic upload, (P) Konami Digital Entertainment)
+Fetched: 2026-11-12 with yt-dlp -f ba -x --audio-format wav (48 kHz stereo, 170 s)
+Files: track.wav, track.info.json, spectrogram.png, ebur128-summary.txt, analysis-chroma-tempo.txt (made with ../../yamaoka-promise-reprise/source/Ana.cs)
+Use: study only. Never ship, never copy melody.

@@ -1,0 +1,4 @@
+clip.mp4      https://www.youtube.com/watch?v=rGGegvMwQGI  "SILENT HILL 2 | Combat Reveal Trailer" (KONAMI official channel), 480p, retrieved 2026-11-12
+contact.jpg   ffmpeg contact sheet, 1 frame / 3 s (derived from clip.mp4)
+clip.info.json  yt-dlp metadata
+Licence: (c) KONAMI / Bloober Team. Standard YouTube licence. Internal study only; never shipped, never traced.

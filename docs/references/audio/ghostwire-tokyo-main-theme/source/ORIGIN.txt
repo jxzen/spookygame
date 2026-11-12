@@ -1,0 +1,6 @@
+Title: Ghostwire:Tokyo (main theme), Masatoshi Yanagi, Ghostwire Tokyo (Original Game Soundtrack), released 2022-03-17
+URL: https://www.youtube.com/watch?v=UdO1XAOUlA8
+Channel: Release - Topic (official "Provided to YouTube by TuneCore" auto-generated upload, (P) 2022 Bethesda Softworks)
+Fetched: 2026-11-12 with yt-dlp -f ba -x --audio-format wav (48 kHz stereo, 239 s)
+Files: track.wav, track.info.json, spectrogram.png, ebur128-summary.txt, analysis-chroma-tempo.txt (made with ../../yamaoka-promise-reprise/source/Ana.cs)
+Use: study only. Never ship, never copy melody.

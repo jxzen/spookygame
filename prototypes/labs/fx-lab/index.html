@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Horror FX Lab</title>
+<style>
+  :root { --ink: #e8e6e1; --dim: #8c8a86; --bg: #070708; --panel: rgba(10,10,11,.86); --line: #2a2a2c; --red: #b3121b; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 13px/1.35 "Segoe UI", system-ui, sans-serif; overflow: hidden; }
+  #stage { position: fixed; inset: 0; }
+  #stage canvas { display: block; width: 100%; height: 100%; }
+  #panel { position: fixed; top: 12px; right: 12px; width: 268px; max-height: calc(100% - 24px); overflow: auto; background: var(--panel);
+    border: 1px solid var(--line); padding: 12px 14px; box-sizing: border-box; }
+  #panel.hidden { display: none; }
+  h1 { font-size: 13px; letter-spacing: .18em; text-transform: uppercase; margin: 0 0 8px; font-weight: 600; }
+  h2 { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin: 12px 0 6px; font-weight: 600; }
+  label { display: flex; align-items: center; gap: 8px; padding: 2px 0; cursor: pointer; }
+  input[type=checkbox] { accent-color: var(--red); }
+  input[type=range] { width: 100%; accent-color: var(--red); }
+  .row { display: flex; justify-content: space-between; color: var(--dim); font-variant-numeric: tabular-nums; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 8px; }
+  button { background: #151517; color: var(--ink); border: 1px solid #3a3a3c; padding: 6px 10px; cursor: pointer; font: inherit; margin: 2px 4px 2px 0; }
+  button:hover { border-color: var(--red); }
+  #fearBig { font-size: 28px; font-weight: 300; color: var(--ink); }
+  #hint { position: fixed; left: 12px; bottom: 10px; color: var(--dim); font-size: 12px; text-shadow: 0 1px 2px #000; }
+  #bypassTag { position: fixed; left: 12px; top: 12px; color: var(--red); font-weight: 600; letter-spacing: .2em; display: none; }
+  @media (max-width: 600px) { #panel { width: calc(100% - 32px); right: 16px; max-height: 50%; top: auto; bottom: 16px; } #hint { display: none; } }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="bypassTag">FX BYPASSED</div>
+<div id="panel">
+  <h1>Horror FX lab</h1>
+  <div class="row"><span>Fear</span><span id="fearBig">0.00</span></div>
+  <input id="fear" type="range" min="0" max="1" step="0.01" value="0.2">
+  <label><input id="auto" type="checkbox"> Monster walks in (drives fear)</label>
+  <div><button id="spikeBtn">Fear spike</button><button id="allOff">All off</button><button id="allOn">All on</button></div>
+  <div class="row"><span>Heart</span><span id="bpm">-</span></div>
+  <div class="row"><span>Flashes in last 1 s</span><span id="flashes">0</span></div>
+  <div class="row"><span>Frame</span><span id="fps">-</span></div>
+  <h2>Effects</h2>
+  <div class="grid" id="toggles"></div>
+  <h2>Accessibility</h2>
+  <label><input id="rf" type="checkbox"> Reduce flashing</label>
+  <label><input id="rm" type="checkbox"> Reduce motion</label>
+  <h2>Height fog</h2>
+  <div class="row"><span>Density</span><span id="fdV"></span></div><input id="fd" type="range" min="0" max="0.2" step="0.002">
+  <div class="row"><span>Height falloff</span><span id="ffV"></span></div><input id="ff" type="range" min="0.02" max="1.2" step="0.01">
+  <div class="row"><span>Fog height</span><span id="fhV"></span></div><input id="fh" type="range" min="-4" max="8" step="0.1">
+  <h2>Rain</h2>
+  <div class="row"><span>Intensity</span><span id="riV"></span></div><input id="ri" type="range" min="0" max="1" step="0.01">
+</div>
+<div id="hint">Drag to look · WASD to walk · F flashlight · hold B to bypass all FX · H hides panel</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="../../shared/fx.js"></script>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const Q = new URLSearchParams(location.search);
+let seed = 7; const R = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+/* ---------- renderer ---------- */
+const renderer = new THREE.WebGLRenderer({ antialias: false });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+$("stage").appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x16171a);
+scene.fog = new THREE.FogExp2(0x16171a, 0.04);
+const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.05, 400); camera.rotation.order = "YXZ";
+camera.position.set(0, 1.65, 10); scene.add(camera);
+
+/* ---------- canvas textures ---------- */
+function cv(w, h) { const c = document.createElement("canvas"); c.width = w; c.height = h; return [c, c.getContext("2d")]; }
+function tex(c, rx, ry) { const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rx || 1, ry || 1); t.anisotropy = 4; return t; }
+function noiseFill(g, w, h, base, amp, n) { g.fillStyle = base; g.fillRect(0, 0, w, h); for (let i = 0; i < n; i++) { const v = Math.floor(R() * amp); g.fillStyle = `rgba(${v},${v},${v},${.08 + R() * .12})`; g.fillRect(R() * w, R() * h, 1 + R() * 3, 1 + R() * 3); } }
+const asphalt = (() => { const [c, g] = cv(512, 512); noiseFill(g, 512, 512, "#3a3a3b", 120, 9000);
+  g.strokeStyle = "rgba(10,10,10,.5)"; g.lineWidth = 2; for (let i = 0; i < 14; i++) { g.beginPath(); let x = R() * 512, y = R() * 512; g.moveTo(x, y); for (let k = 0; k < 6; k++) { x += (R() - .5) * 60; y += (R() - .5) * 60; g.lineTo(x, y); } g.stroke(); }
+  return tex(c, 2, 12); })();
+const roadMark = (() => { const [c, g] = cv(512, 256); g.clearRect(0, 0, 512, 256); g.fillStyle = "rgba(225,222,215,.85)"; g.font = "bold 190px 'Yu Gothic','MS Gothic',sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
+  g.save(); g.translate(256, 128); g.scale(1, 1.0); g.fillText("止まれ", 0, 10); g.restore(); return new THREE.CanvasTexture(c); })();
+function facade(shade, rows, lit) {
+  const [c, g] = cv(256, 512); noiseFill(g, 256, 512, shade, 90, 2500);
+  for (let r = 0; r < rows; r++) for (let k = 0; k < 3; k++) {
+    const x = 24 + k * 76, y = 40 + r * 82; const on = R() < lit;
+    g.fillStyle = on ? "#8a8986" : "#101011"; g.fillRect(x, y, 52, 46);
+    g.fillStyle = "rgba(0,0,0,.6)"; g.fillRect(x, y + 46, 52, 4); g.fillRect(x + 24, y, 3, 46);
+  }
+  g.fillStyle = "#1a1a1b"; g.fillRect(0, 430, 256, 82);                    /* shutter band */
+  g.fillStyle = "#4c4c4d"; for (let y = 434; y < 512; y += 6) g.fillRect(6, y, 244, 3);
+  for (let i = 0; i < 40; i++) { g.fillStyle = `rgba(0,0,0,${.05 + R() * .1})`; g.fillRect(R() * 256, R() * 300, 2 + R() * 4, 40 + R() * 160); } /* rain streak stains */
+  return new THREE.CanvasTexture(c);
+}
+function signTex(text, dark) {
+  const [c, g] = cv(96, 384); g.fillStyle = dark ? "#121212" : "#d8d5ce"; g.fillRect(0, 0, 96, 384);
+  g.strokeStyle = dark ? "#5a5a5a" : "#222"; g.lineWidth = 6; g.strokeRect(4, 4, 88, 376);
+  g.fillStyle = dark ? "#d8d5ce" : "#111"; g.font = "bold 66px 'Yu Mincho','MS Mincho',serif"; g.textAlign = "center"; g.textBaseline = "middle";
+  [...text].forEach((ch, i) => g.fillText(ch, 48, 60 + i * 86));
+  return new THREE.CanvasTexture(c);
+}
+const std = o => new THREE.MeshStandardMaterial(Object.assign({ roughness: .9, metalness: 0 }, o));
+
+/* ---------- the street ---------- */
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(9, 90), std({ map: asphalt, roughness: .75 }));
+ground.rotation.x = -Math.PI / 2; ground.position.z = -30; ground.receiveShadow = true; scene.add(ground);
+const mark = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.7), std({ map: roadMark, transparent: true, roughness: .5 }));
+mark.rotation.x = -Math.PI / 2; mark.position.set(0, .012, 1); mark.receiveShadow = true; scene.add(mark);
+for (const sx of [-1, 1]) {   /* gutters */
+  const gt = new THREE.Mesh(new THREE.BoxGeometry(.35, .05, 90), std({ color: 0x1b1b1c, roughness: .3, metalness: .6 })); gt.position.set(sx * 4.3, .02, -30); gt.receiveShadow = true; scene.add(gt);
+}
+const facades = ["#4a4a4b", "#3e3e40", "#545352", "#47474a"].map((s, i) => facade(s, 5, .18 + i * .04));
+const solids = [];
+function building(x0, x1, z0, z1, h) {
+  const w = x1 - x0, d = z1 - z0, t = facades[Math.floor(R() * facades.length)].clone(); t.needsUpdate = true;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(Math.max(1, Math.round(d / 4)), h / 7.5);
+  const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), std({ map: t })); b.position.set((x0 + x1) / 2, h / 2, (z0 + z1) / 2);
+  b.castShadow = b.receiveShadow = true; scene.add(b); solids.push(b);
+  /* awning */
+  if (R() < .6) { const sx = x0 < 0 ? x1 : x0; const a = new THREE.Mesh(new THREE.BoxGeometry(1.1, .08, d * .8), std({ color: 0x232324 }));
+    a.position.set(sx + (x0 < 0 ? .55 : -.55), 2.7, (z0 + z1) / 2); a.rotation.z = (x0 < 0 ? -1 : 1) * .12; a.castShadow = true; scene.add(a); }
+}
+for (const side of [-1, 1]) { let z = 14; while (z > -76) { const len = 4 + R() * 5; const x0 = side < 0 ? -12 : 4.5, x1 = side < 0 ? -4.5 : 12; building(x0, x1, z - len, z, 6 + R() * 9); z -= len + (R() < .2 ? 1.2 : 0); } }
+const backWall = new THREE.Mesh(new THREE.BoxGeometry(30, 20, 1), std({ color: 0x2a2a2b })); backWall.position.set(0, 10, -76); scene.add(backWall);
+
+/* vertical signs (kanji): izakaya, pawn, pharmacy, coffee */
+[["居酒屋", -4.4, -6, false], ["質", 4.4, -13, true], ["薬", -4.4, -21, false], ["喫茶", 4.4, -28, true], ["旅館", -4.4, -40, true]].forEach(([t, x, z, dark]) => {
+  const s = new THREE.Mesh(new THREE.BoxGeometry(.12, 2.6, .7), [std({ color: 0x111 }), std({ color: 0x111 }), std({ color: 0x111 }), std({ color: 0x111 }),
+    std({ map: signTex(t, dark), emissive: 0xffffff, emissiveMap: signTex(t, dark), emissiveIntensity: .12 }), std({ map: signTex(t, dark), emissive: 0xffffff, emissiveMap: signTex(t, dark), emissiveIntensity: .12 })]);
+  s.rotation.y = Math.PI / 2; s.position.set(x + (x < 0 ? .45 : -.45), 4.3, z); s.castShadow = true; scene.add(s);
+});
+
+/* red lanterns (akachochin): the only colour */
+const redLamp = new THREE.PointLight(0xff1a12, 1.6, 7, 2); redLamp.position.set(-3.7, 2.35, -6.2); scene.add(redLamp);
+const lanternMat = new THREE.MeshStandardMaterial({ color: 0x5a0505, emissive: 0xc8100a, emissiveIntensity: 1, roughness: .6 });
+for (const dz of [-.7, .5]) { const l = new THREE.Mesh(new THREE.SphereGeometry(.26, 16, 12), lanternMat); l.scale.y = 1.35; l.position.set(-3.75, 2.4, -6.2 + dz); scene.add(l); }
+
+/* vending machine: cold white light */
+const vend = new THREE.Group(); vend.position.set(3.9, 0, -2.5); scene.add(vend);
+const vendFront = (() => { const [c, g] = cv(128, 256); g.fillStyle = "#e9e8e4"; g.fillRect(0, 0, 128, 256); for (let r = 0; r < 4; r++) for (let k = 0; k < 6; k++) { g.fillStyle = ["#2a2a2a", "#777", "#444", "#999"][(r + k) % 4]; g.fillRect(8 + k * 19, 14 + r * 38, 12, 26); }
+  g.fillStyle = "#151515"; g.fillRect(10, 175, 108, 60); return new THREE.CanvasTexture(c); })();
+const vendMat = new THREE.MeshStandardMaterial({ color: 0x777777, map: vendFront, emissive: 0xffffff, emissiveMap: vendFront, emissiveIntensity: .9 });
+const vbox = new THREE.Mesh(new THREE.BoxGeometry(.75, 1.85, 1), [std({ color: 0x2b2b2c }), vendMat, std({ color: 0x2b2b2c }), std({ color: 0x2b2b2c }), std({ color: 0x2b2b2c }), std({ color: 0x2b2b2c })]);
+vbox.position.y = .925; vbox.castShadow = true; vend.add(vbox);
+const vendLight = new THREE.PointLight(0xdfe6ee, 1.3, 7, 2); vendLight.position.set(-.9, 1.2, 0); vend.add(vendLight);
+
+/* utility poles + wires */
+const poleMat = std({ color: 0x2d2d2e }), wires = [];
+const poles = [];
+for (let z = 6; z > -70; z -= 13) { for (const sx of [-1, 1]) { if ((z / 13 + (sx > 0 ? 0 : .5)) % 1 !== 0 && sx < 0) continue;
+  const x = sx * 3.95, p = new THREE.Mesh(new THREE.CylinderGeometry(.13, .17, 9, 10), poleMat); p.position.set(x, 4.5, z); p.castShadow = true; scene.add(p);
+  const bar = new THREE.Mesh(new THREE.BoxGeometry(1.6, .1, .1), poleMat); bar.position.set(x, 8.2, z); scene.add(bar);
+  const tr = new THREE.Mesh(new THREE.CylinderGeometry(.25, .25, .7, 10), poleMat); tr.position.set(x - sx * .35, 7.3, z); scene.add(tr);
+  poles.push({ x, z }); } }
+const wireMat = new THREE.LineBasicMaterial({ color: 0x050505 });
+const byX = {}; poles.forEach(p => (byX[p.x] = byX[p.x] || []).push(p));
+Object.values(byX).forEach(list => { list.sort((a, b) => b.z - a.z); for (let i = 0; i < list.length - 1; i++) for (const off of [-.7, 0, .7]) {
+  const a = list[i], b = list[i + 1], pts = []; for (let k = 0; k <= 16; k++) { const t = k / 16; pts.push(new THREE.Vector3(a.x + off, 8.2 - Math.sin(t * Math.PI) * .6, a.z + (b.z - a.z) * t)); }
+  scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), wireMat)); } });
+/* cross wires over the street */
+for (let z = 4; z > -60; z -= 17) { const pts = []; for (let k = 0; k <= 16; k++) { const t = k / 16; pts.push(new THREE.Vector3(-3.95 + 7.9 * t, 7.6 - Math.sin(t * Math.PI) * .8, z - t * 3)); } scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), wireMat)); }
+
+/* street lamps: hard cones, the noir key light */
+const lamps = [];
+[[-3.6, -1, "buzz"], [3.6, -15, "dying"], [-3.6, -27, "buzz"], [3.6, -42, "buzz"]].forEach(([x, z, pattern]) => {
+  const arm = new THREE.Mesh(new THREE.BoxGeometry(1.2, .08, .08), poleMat); arm.position.set(x + (x < 0 ? .6 : -.6), 5.6, z); scene.add(arm);
+  const headMat = new THREE.MeshStandardMaterial({ color: 0x333333, emissive: 0xf4f1ea, emissiveIntensity: 1 });
+  const head = new THREE.Mesh(new THREE.BoxGeometry(.5, .1, .25), headMat); head.position.set(x + (x < 0 ? 1.1 : -1.1), 5.55, z); scene.add(head);
+  const L = new THREE.SpotLight(0xf1eee6, 3.2, 13, .62, .35, 1.6); L.position.copy(head.position); L.position.y -= .08;
+  L.target.position.set(head.position.x, 0, z); scene.add(L); scene.add(L.target);
+  if (lamps.length === 0) { L.castShadow = true; L.shadow.mapSize.set(512, 512); L.shadow.camera.near = .5; L.shadow.camera.far = 14; }
+  lamps.push({ L, headMat, pattern, z });
+});
+
+/* the figure: hinted, mostly fog and silhouette */
+const figure = new THREE.Group(); scene.add(figure);
+const black = new THREE.MeshBasicMaterial({ color: 0x030303 });
+const fBody = new THREE.Mesh(new THREE.CylinderGeometry(.16, .3, 2.1, 8), black); fBody.position.y = 1.05; figure.add(fBody);
+const fHead = new THREE.Mesh(new THREE.SphereGeometry(.17, 10, 8), black); fHead.position.set(.04, 2.32, 0); fHead.scale.y = 1.25; figure.add(fHead);
+const hair = new THREE.Mesh(new THREE.CylinderGeometry(.19, .32, 1.1, 8, 1, true), black); hair.position.set(0, 1.85, 0); figure.add(hair);
+for (const s of [-1, 1]) { const a = new THREE.Mesh(new THREE.CylinderGeometry(.04, .03, 1.5, 6), black); a.position.set(s * .27, 1.2, 0); a.rotation.z = s * .05; figure.add(a); }
+figure.traverse(o => { if (o.isMesh) o.castShadow = true; });
+
+/* sky dome so the height fog paints the sky gradient */
+const sky = new THREE.Mesh(new THREE.SphereGeometry(300, 24, 12), new THREE.MeshBasicMaterial({ color: 0x020203, side: THREE.BackSide })); scene.add(sky);
+const hemi = new THREE.HemisphereLight(0x7a7a80, 0x0c0c0d, .16); scene.add(hemi);
+
+/* flashlight */
+const flash = new THREE.SpotLight(0xf3f0e8, 2.6, 30, .4, .5, 1.4);
+flash.castShadow = true; flash.shadow.mapSize.set(1024, 1024); flash.shadow.bias = -.0006; flash.shadow.camera.near = .3; flash.shadow.camera.far = 30;
+flash.position.set(.22, -.22, -.1); camera.add(flash); flash.target.position.set(.05, -.12, -6); camera.add(flash.target);
+
+/* ---------- HorrorFX ---------- */
+HorrorFX.init(renderer, scene, camera, { rainCount: 9000 });
+HorrorFX.patch(ground, { wet: 1, ripple: true });
+HorrorFX.patch(mark, { wet: .8, ripple: true });
+HorrorFX.patch(scene, { wet: .25 });     /* walls and the rest: damp, not puddled */
+HorrorFX.setFlashlight(flash);
+const figureNear = () => Math.max(0, 1 - figure.position.distanceTo(camera.position) / 30);
+lamps.forEach(l => { HorrorFX.addFlicker(l.L, { pattern: l.pattern, emissive: l.headMat, proximity: () => Math.max(0, 1 - Math.abs(figure.position.z - l.z) / 9) * figureNear() * 1.2 }); HorrorFX.addShaft(l.L, { opacity: .16 }); });
+HorrorFX.addFlicker(vendLight, { pattern: "buzz", emissive: vendMat, fearScale: .7 });
+HorrorFX.addFlicker(redLamp, { pattern: "candle", emissive: lanternMat, fearScale: .3 });
+
+/* ---------- UI ---------- */
+const LABELS = { heightFog: "Height fog", rain: "Rain", splashes: "Splashes", wet: "Wet sheen", shafts: "Light shafts", grain: "Film grain", static: "Static / snow",
+  tear: "Scanline tear", chroma: "Chromatic ab.", vignette: "Vignette", heartbeat: "Heartbeat pulse", radial: "Radial blur", desat: "Desat (keep red)",
+  contrast: "Noir contrast", sway: "Screen sway", phantom: "Edge phantom", flicker: "Light flicker" };
+const offList = (Q.get("off") || "").split(",").filter(Boolean);
+HorrorFX.EFFECTS.forEach(name => {
+  const l = document.createElement("label"); const c = document.createElement("input"); c.type = "checkbox"; c.checked = !offList.includes(name) && Q.get("off") !== "all";
+  HorrorFX.enable(name, c.checked); c.onchange = () => HorrorFX.enable(name, c.checked); c.dataset.fx = name;
+  l.append(c, LABELS[name] || name); $("toggles").append(l);
+});
+const setAll = on => document.querySelectorAll("#toggles input").forEach(c => { c.checked = on; HorrorFX.enable(c.dataset.fx, on); });
+$("allOff").onclick = () => setAll(false); $("allOn").onclick = () => setAll(true);
+$("spikeBtn").onclick = () => HorrorFX.spike(1);
+const acc = () => HorrorFX.setAccessibility({ reduceFlashing: $("rf").checked, reduceMotion: $("rm").checked });
+$("rf").checked = Q.get("reduce") === "1" || Q.get("rf") === "1"; $("rm").checked = Q.get("reduce") === "1" || Q.get("rm") === "1";
+$("rf").onchange = $("rm").onchange = acc; acc();
+function bindRange(id, get, set, fmt) { const el = $(id); el.value = get(); const show = () => $(id + "V").textContent = fmt(+el.value); el.oninput = () => { set(+el.value); show(); }; show(); }
+bindRange("fd", () => HorrorFX.fog.density, v => HorrorFX.fog.density = v, v => v.toFixed(3));
+bindRange("ff", () => HorrorFX.fog.falloff, v => HorrorFX.fog.falloff = v, v => v.toFixed(2));
+bindRange("fh", () => HorrorFX.fog.height, v => HorrorFX.fog.height = v, v => v.toFixed(1) + " m");
+bindRange("ri", () => HorrorFX.rain.intensity, v => HorrorFX.rain.intensity = v, v => v.toFixed(2));
+if (Q.has("fear")) $("fear").value = Q.get("fear");
+if (Q.get("auto") === "1") $("auto").checked = true;
+if (Q.get("panel") === "0") { $("panel").classList.add("hidden"); $("hint").style.display = "none"; }
+if (Q.get("light") === "0") flash.visible = false;
+
+/* ---------- input ---------- */
+let yaw = 0, pitch = -.03, drag = false, lx = 0, ly = 0; const keys = {};
+if (Q.has("yaw")) yaw = +Q.get("yaw"); if (Q.has("z")) camera.position.z = +Q.get("z");
+renderer.domElement.addEventListener("pointerdown", e => { drag = true; lx = e.clientX; ly = e.clientY; });
+addEventListener("pointerup", () => drag = false);
+addEventListener("pointermove", e => { if (!drag) return; yaw -= (e.clientX - lx) * .004; pitch = Math.max(-1.2, Math.min(1.2, pitch - (e.clientY - ly) * .004)); lx = e.clientX; ly = e.clientY; });
+addEventListener("keydown", e => { keys[e.code] = true; if (e.code === "KeyF") flash.visible = !flash.visible; if (e.code === "KeyH") $("panel").classList.toggle("hidden");
+  if (e.code === "KeyB") { HorrorFX.setBypass(true); $("bypassTag").style.display = "block"; } });
+addEventListener("keyup", e => { keys[e.code] = false; if (e.code === "KeyB") { HorrorFX.setBypass(false); $("bypassTag").style.display = "none"; } });
+addEventListener("resize", () => { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); HorrorFX.setSize(innerWidth, innerHeight); });
+
+/* ---------- loop ---------- */
+let last = performance.now(), t = 0, autoT = 0, fpsAcc = 0, fpsN = 0, maxFlash = 0;
+const spikeAt = Q.has("spike") ? +Q.get("spike") : -1;
+function frame(now) {
+  const dt = Math.min((now - last) / 1000, .1); last = now; t += dt;
+  /* walk */
+  const sp = 2.6 * dt, fx = -Math.sin(yaw), fz = -Math.cos(yaw);
+  let mx = (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0), mz = (keys.KeyW ? 1 : 0) - (keys.KeyS ? 1 : 0);
+  camera.position.x = Math.max(-3.6, Math.min(3.6, camera.position.x + (fx * mz - fz * mx) * sp));
+  camera.position.z = Math.max(-70, Math.min(12, camera.position.z + (fz * mz + fx * mx) * sp));
+  camera.position.y = 1.65 + Math.sin(t * 1.3) * .012;
+  camera.rotation.set(pitch, yaw, 0);
+  /* fear */
+  let fear = +$("fear").value;
+  if ($("auto").checked) { autoT += dt; fear = Math.min(1, (autoT % 24) / 18); $("fear").value = fear; }
+  $("fearBig").textContent = fear.toFixed(2);
+  HorrorFX.setFear(fear);
+  if (spikeAt >= 0 && t > spikeAt && t - dt <= spikeAt) HorrorFX.spike(1);
+  /* the figure stands where the fog is thickest, closer with fear; it twitches */
+  const fz2 = camera.position.z - (5 + (1 - fear) * 30);
+  figure.position.set(Math.sin(t * .3) * .4 + .6, 0, fz2); figure.lookAt(camera.position.x, 0, camera.position.z);
+  fHead.rotation.z = Math.sin(t * 13) * .05 * fear + (Math.random() < fear * .03 ? (Math.random() - .5) * .9 : 0);
+  HorrorFX.update(dt);
+  HorrorFX.render();
+  /* readouts */
+  fpsAcc += dt; fpsN++; if (fpsAcc > .5) { $("fps").textContent = (1000 * fpsAcc / fpsN).toFixed(1) + " ms"; fpsAcc = 0; fpsN = 0; }
+  const fl = HorrorFX.flashesLastSecond(); maxFlash = Math.max(maxFlash, fl);
+  $("flashes").textContent = fl + " (max " + maxFlash + ")"; $("bpm").textContent = Math.round(HorrorFX.bpm) + " bpm";
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

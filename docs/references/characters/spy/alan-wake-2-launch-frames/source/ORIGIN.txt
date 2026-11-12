@@ -1,0 +1,4 @@
+URL: https://www.youtube.com/watch?v=dlQ3FeNu5Yw  ("Alan Wake 2 - Launch Trailer | PS5 Games", official PlayStation channel)
+Local source: docs/references/characters/alan-wake-2-launch/source/clip.mp4 (fetched earlier by another agent; read only, not modified)
+Frames extracted 2026-11-12 headless with Blender VSE, 640x480 (16:9 source squashed to 4:3), NNNNN = source frame at 30 fps.
+Licence note: copyrighted (Remedy Entertainment / Epic Games Publishing). Internal study reference only under fair-use style research; never ship, trace or redistribute.
