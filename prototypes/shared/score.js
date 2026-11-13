@@ -1,6 +1,8 @@
 /* score.js: mission-1 procedural score (MUSIC-01). Spec: docs/design/score-spec.md
    WebAudio synthesis only. One clock, one key (D), one harmonic plan shared by all instruments.
-   API: Score.init(ctx, dest) · setState(name) · setIntensity(0..1) · sting(name) · update([now]) · getInfo() · stop() */
+   API: Score.init(ctx, dest) · setState(name) · setIntensity(0..1) · setDuck(0..1) · sting(name) · update([now]) · getInfo() · stop()
+   H16 (probe 04: "the low hum feels like a audio bug"): no oscillator runs for the whole session any more. The old D1+D2
+   drone and the castle hum are gone; the low D now arrives as bowed swells, one per chord, that breathe in and out. */
 (function () {
   'use strict';
 
@@ -45,6 +47,7 @@
 
   /* ---------- engine state ---------- */
   let ctx = null, S = null;
+  const MIX = 0.91; // master mix gain into the limiter (was 0.78 with the old drone; +1.3 dB after its removal, wave 3 offline measurement)
   function seeded(seed) { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
   const nowT = () => (S && S.vnow != null ? S.vnow : ctx.currentTime);
   function osc(type, f) { const o = ctx.createOscillator(); o.type = type; o.frequency.value = f; return o; }
@@ -61,10 +64,11 @@
     S = { ctx, bus: {}, rnd: seeded(1337), notes: [], events: [], debug: false, vnow: null, voices: [], ks: {} };
     const sr = ctx.sampleRate;
     // master: mix -> limiter -> trim(-1.5 dB) -> dest
-    S.mix = gain(0.78); // calibrated: offline 100 s tour = -18 LUFS integrated, true peak < -1 dBTP
+    S.mix = gain(MIX);
+    S.duck = gain(1); // threat ducking (audio.js -> setDuck): the monster's static pushes the music down
     S.lim = ctx.createDynamicsCompressor(); S.lim.threshold.value = -6; S.lim.knee.value = 0; S.lim.ratio.value = 20; S.lim.attack.value = 0.002; S.lim.release.value = 0.15;
     S.trim = gain(Math.pow(10, -1.5 / 20));
-    S.mix.connect(S.lim); S.lim.connect(S.trim); S.trim.connect(dest || ctx.destination);
+    S.mix.connect(S.duck); S.duck.connect(S.lim); S.lim.connect(S.trim); S.trim.connect(dest || ctx.destination);
     // reverb (seeded, deterministic), 3.8 s hall
     S.rev = ctx.createConvolver(); const len = Math.floor(sr * 3.8), ir = ctx.createBuffer(2, len, sr), r = seeded(7);
     for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (r() * 2 - 1) * Math.pow(1 - i / len, 2.6) * (i < sr * .02 ? i / (sr * .02) : 1); }
@@ -75,12 +79,8 @@
     bus('bass', 0.55, 0.25); bus('koto', 1.1, 0.55); bus('spicc', 0.5, 0.3); bus('perc', 0.9, 0.12); bus('fx', 0.7, 0.6); bus('drone', 0.0, 0.3);
     bus('brass', 0.5, 0.35); bus('lead', 0.55, 0.45); bus('kit', 0.7, 0.08); // spy cue
     S.base = {}; S.layer = {}; for (const k in S.bus) { S.base[k] = S.bus[k].gain.value; S.layer[k] = 1; }
-    // the drone that never stops: D1 + D2, filtered
-    const dl = filt('lowpass', 260, 0.7); dl.connect(S.bus.drone);
-    [[mtof(26), 'sine', .5], [mtof(38), 'sawtooth', .18], [mtof(38) * 1.003, 'sawtooth', .18], [mtof(50), 'triangle', .08]].forEach(([f, ty, v]) => { const o = osc(ty, f), g = gain(v); o.connect(g); g.connect(dl); o.start(); });
-    // castle hum, tuned to D (Backrooms fluorescent hum, but in key)
-    S.hum = gain(0); const hl = filt('lowpass', 900, 1); hl.connect(S.hum); S.hum.connect(S.bus.fx);
-    [[mtof(38) * 2, 'sawtooth', .4], [mtof(38) * 4, 'square', .05], [mtof(38) * 2 * 1.006, 'sawtooth', .3]].forEach(([f, ty, v]) => { const o = osc(ty, f), g = gain(v); o.connect(g); g.connect(hl); o.start(); });
+    // H16: no always-on drone and no castle hum. The low D is played per chord by droneSwell() (scheduled, enveloped, ends).
+    S.hum = gain(0); S.hum.connect(S.bus.fx); // inert node, kept so stop() and old callers stay valid
     // transport
     Object.assign(S, { state: 'silent', pending: null, stings: [], I: 0, Itarget: 0, lastUpd: null, running: true,
       next: ctx.currentTime + 0.1, beat: 0, bar: 0, step: 0, barInChord: 0, cycle: 0, chordName: 'Dm/D', voicing: [57, 62, 65], lastBass: 38 });
@@ -111,6 +111,19 @@
     const end = t + dur + 0.7, nodes = [];
     for (const [k, dc] of [[1, -5], [1, 5], [0.5, 0]]) { const o = osc('sawtooth', mtof(m) * k * Math.pow(2, dc / 1200)); o.connect(lp); o.start(t); o.stop(end); nodes.push(o); }
     lp.connect(env); env.connect(S.bus.bass); S.voices.push({ env, nodes, end }); log('bass', t, m);
+  }
+  /** A bowed low D that swells in and dies away inside one chord: slow attack, filter opening then closing, a slow bow
+   *  tremor, silence before the next chord. Replaces the old always-on D1+D2 drone (H16). No sub-octave sine. */
+  function droneSwell(t, dur, v) {
+    if (dur < 1.5) return;
+    const env = gain(0), lp = filt('lowpass', 160, 0.9), end = t + dur * 0.97, nodes = [];
+    const pk = Math.min(dur * (0.35 + 0.2 * S.rnd()), 4);
+    env.gain.setValueAtTime(0, t); env.gain.linearRampToValueAtTime(v, t + pk); env.gain.setTargetAtTime(0, t + pk + 0.2, (end - t - pk) / 4);
+    lp.frequency.setValueAtTime(160, t); lp.frequency.linearRampToValueAtTime(420 + 240 * S.rnd(), t + pk); lp.frequency.exponentialRampToValueAtTime(150, end);
+    const trem = osc('sine', 0.35 + 0.4 * S.rnd()), tg = gain(0.25), body = gain(0.75); trem.connect(tg); tg.connect(body.gain); body.connect(env);
+    for (const [m, dc, k] of [[38, -6, 0.5], [38, 7, 0.5], [50, 3, 0.18]]) { const o = osc('sawtooth', mtof(m) * Math.pow(2, dc / 1200)), og = gain(k); o.connect(og); og.connect(lp); o.start(t); o.stop(end + 0.05); nodes.push(o); }
+    trem.start(t); trem.stop(end + 0.05); nodes.push(trem);
+    lp.connect(body); env.connect(S.bus.drone); S.voices.push({ env, nodes, end: end + 0.05 }); log('drone', t, 38);
   }
   function spicc(m, t, v) {
     const g = gain(0), lp = filt('lowpass', 1400); lp.frequency.setValueAtTime(1400, t); lp.frequency.exponentialRampToValueAtTime(280, t + .12);
@@ -215,7 +228,6 @@
     S.bus.pad.gain.setTargetAtTime(padV, t, tc);
     S.padF.frequency.setTargetAtTime(st.pad === 'harm' ? 6000 : 700 + 2600 * I * I, t, tc);
     S.bus.drone.gain.setTargetAtTime(S.state === 'escape' ? 0.05 : S.state === 'spy' ? 0.08 : S.state === 'hide' ? 0.12 : st.pedal ? 0.2 : 0.14, t, tc);
-    S.hum.gain.setTargetAtTime(S.state === 'castle' ? 0.05 : 0, t, hard ? 0.01 : 1.2);
   }
 
   /* ---------- scheduler ---------- */
@@ -253,6 +265,8 @@
   function startChord(t, dur, spb) {
     const st = STATES[S.state], c = chord(), I = effI();
     if (st.pad === 'none') return;
+    // the low D breathes once per chord; in explore it skips about one chord in three so there is air under the pad
+    if (S.state !== 'spy' && S.state !== 'escape' && (st.pedal || S.rnd() > 0.35)) droneSwell(t, dur, 1);
     if (st.pad === 'harm') { padVoice(86, t, dur, 0.05, 'harm', spb); padVoice(81, t, dur, 0.04, 'harm', spb); if (S.chordName === 'Eb/D') padVoice(87, t, dur, 0.03, 'harm', spb); return; }
     const v = voiceLead(c.t), vol = st.pad === 'trem' ? 0.07 : S.state === 'spy' ? 0.04 : 0.065;
     if (S.state === 'spy') { v.forEach(m => padVoice(m, t, dur, vol, 'legato', spb)); return; } // the ostinato is the spy cue's bass
@@ -356,6 +370,8 @@
       S.pending = { name, quant: STATES[name].quant || 'bar' };
     },
     setIntensity(v) { if (S) S.Itarget = Math.max(0, Math.min(1, +v || 0)); },
+    /** duck the whole score by v (0 = none, 1 = -12 dB), smoothed; audio.js drives it from the monster's threat */
+    setDuck(v) { if (!S) return; v = Math.max(0, Math.min(1, +v || 0)); if (Math.abs((S.duckV || 0) - v) < 0.01) return; S.duckV = v; S.duck.gain.setTargetAtTime(Math.pow(10, -12 * v / 20), nowT(), 0.15); },
     sting(name) {
       if (!S || !Score.STINGS.includes(name)) return;
       if (name !== 'shift') { S.stings.push({ name, at: 0 }); return; }

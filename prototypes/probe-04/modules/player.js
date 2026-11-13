@@ -67,21 +67,105 @@
   }
 
   /* ---------- audio: footsteps ---------- */
-  let noiseBuf = null;
+  // H16 ("footsteps are badly sounded"): synthesized steps, no samples. A step is a heel strike and a toe/roll strike
+  // (two transients 40-180 ms apart, each a pitched thud + a band of noise), a filtered-noise body (the sole scuffing),
+  // and surface layers: wet splash outdoors, gravel crunch at the shrine, board creaks on wood, a ring on metal, a short
+  // room reflection on hard indoor floors. Pitch, level and timing vary every step; left/right feet pan apart slightly.
+  // Buffers are built once on 'audio-ready' (never mid-play). Surface comes from position (guarded reads of G.world,
+  // G.shift, G.mission); unknown -> wet asphalt.
+  const FS = { ctx: null, B: null, out: null, foot: 0 };
+  // thud [Hz, level] · click [band Hz, Q, level, decay s] · body [band Hz, level, decay s, noise] · layers
+  const SURF = {
+    asphalt: { thud: [85, 0.5], click: [1700, 0.9, 0.4, 0.016], body: [650, 0.32, 0.05, 'brown'], wet: 0.55 },
+    stone: { thud: [100, 0.45], click: [2500, 1.1, 0.5, 0.012], body: [950, 0.25, 0.05, 'brown'], wet: 0.35 },
+    concrete: { trim: 1.1, thud: [95, 0.45], click: [2300, 1.0, 0.5, 0.013], body: [900, 0.28, 0.05, 'brown'], wet: 0.12, verb: 0.22 },
+    tile: { trim: 1.4, thud: [110, 0.35], click: [3100, 1.4, 0.55, 0.009], body: [1300, 0.2, 0.04, 'brown'], verb: 0.32 },
+    wood: { thud: [125, 0.8], click: [1050, 1.6, 0.32, 0.02], body: [520, 0.28, 0.06, 'brown'], creak: 0.16, verb: 0.18 },
+    tatami: { trim: 1.15, thud: [78, 0.45], click: [650, 0.7, 0.1, 0.03], body: [2600, 0.16, 0.09, 'white'], lp: 2400 },
+    gravel: { trim: 1.35, thud: [75, 0.35], click: [1400, 0.8, 0.18, 0.02], body: [850, 0.14, 0.05, 'brown'], grit: 0.85 },
+    metal: { thud: [140, 0.4], click: [2000, 1.0, 0.4, 0.012], body: [900, 0.2, 0.05, 'brown'], ring: 0.16 },
+    carpet: { trim: 1.1, thud: [70, 0.5], click: [600, 0.7, 0.05, 0.03], body: [1800, 0.07, 0.08, 'white'], lp: 1400 }
+  };
+  const ROOM_FLOOR = { pharmacy: 'tile', noodles: 'tile', kimono: 'tatami', pachinko: 'wood', izakaya: 'wood', kura: 'wood', station: 'tile', office: 'tile', underpass: 'concrete', arcade: 'concrete', platform: 'concrete' };
+  function fsSurface() {
+    try {
+      if (G.shift && G.shift.active) return 'wood';                          // the castle's moving floors
+      if (G.mission && G.mission.phase === 'ending') return 'carpet';         // aboard the shinkansen
+      const W = G.world, x = P.pos.x, z = P.pos.z; if (!W) return 'asphalt';
+      const room = typeof W.indoor === 'function' ? W.indoor(x, z) : null;
+      if (room === 'izakaya' && x > 70.2 && x < 73.4 && -z > 45.2 && -z < 47.8) return 'tatami'; // the raised seating
+      if (room === 'platform' && -z > 95.2) return 'metal';                   // edge plates at the track side
+      if (room) return ROOM_FLOOR[room] || 'wood';
+      const h = typeof W.heightAt === 'function' ? +W.heightAt(x, z) || 0 : 0;
+      if (h > 4.5) return 'gravel';                                           // shrine precinct
+      if (h > 0.3) return 'stone';                                            // shrine stairs
+      return 'asphalt';
+    } catch (e) { return 'asphalt'; }
+  }
+  function fsBuild(ctx) {
+    if (!ctx || FS.ctx === ctx) return; FS.ctx = ctx;
+    const sr = ctx.sampleRate; let s = 0x51ed27; const r = () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+    const mk = (sec, fill) => { const b = ctx.createBuffer(1, Math.floor(sr * sec), sr), d = b.getChannelData(0); fill(d); let pk = 0; for (let i = 0; i < d.length; i++) pk = Math.max(pk, Math.abs(d[i])); for (let i = 0; i < d.length; i++) d[i] *= 0.9 / (pk || 1); return b; };
+    FS.B = {
+      white: mk(1, d => { for (let i = 0; i < d.length; i++) d[i] = r() * 2 - 1; }),
+      brown: mk(1, d => { let v = 0; for (let i = 0; i < d.length; i++) { v = (v + 0.06 * (r() * 2 - 1)) * 0.98; d[i] = v; } }),
+      grit: mk(1, d => { let t = 0; while (t < d.length - 200) { const a = Math.pow(r(), 2) * (r() < 0.5 ? -1 : 1), L = 30 + Math.floor(r() * 150); for (let k = 0; k < L; k++) d[t + k] += a * (r() * 2 - 1) * Math.exp(-k / (L * 0.25)); t += 10 + Math.floor(r() * 110); } }),
+      // a foot in standing water: a slap, then bubble plinks thinning out over ~0.3 s
+      splash: mk(0.5, d => {
+        for (let i = 0; i < d.length; i++) d[i] = (r() * 2 - 1) * 0.35 * Math.exp(-i / (sr * 0.03));
+        for (let n = 0; n < 160; n++) { const t0 = Math.floor(Math.pow(r(), 2.2) * d.length * 0.8), f0 = 1200 + r() * 4200, L = Math.floor(sr * (0.003 + r() * 0.01)), a = 0.15 + 0.85 * Math.pow(r(), 2); let ph = 0;
+          for (let k = 0; k < L && t0 + k < d.length; k++) { ph += 2 * Math.PI * f0 * (1 + 0.7 * k / L) / sr; d[t0 + k] += a * Math.sin(ph) * Math.exp(-k / (L * 0.3)); } }
+      })
+    };
+    FS.out = ctx.createGain(); FS.out.gain.value = 1; FS.out.connect(ctx.destination);
+  }
+  if (G.on) G.on('audio-ready', c => { try { fsBuild(c || G.audioCtx); } catch (e) { /* audio is optional */ } });
   function footstepSound(quiet, loud) {
     const ctx = G.audioCtx; if (!ctx || ctx.state !== 'running') return;
-    if (!noiseBuf) { noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 0.5 | 0, ctx.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
-    const t = ctx.currentTime, n = ctx.createBufferSource(); n.buffer = noiseBuf;
-    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = (quiet ? 380 : 520) + Math.random() * 300;
-    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 70;
-    const g = ctx.createGain(), v = quiet ? 0.05 : loud ? 0.24 : 0.15;
-    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + (loud ? 0.12 : 0.09));
-    n.connect(lp); lp.connect(hp); hp.connect(g); g.connect(ctx.destination);
-    // wet slap: a second, brighter click (rain-soaked ground)
-    const n2 = ctx.createBufferSource(); n2.buffer = noiseBuf; const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2400 + Math.random() * 800; bp.Q.value = 1.2;
-    const g2 = ctx.createGain(); g2.gain.setValueAtTime(0.0001, t + 0.01); g2.gain.exponentialRampToValueAtTime(v * 0.25, t + 0.016); g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
-    n2.connect(bp); bp.connect(g2); g2.connect(ctx.destination);
-    const off = Math.random() * 0.35; n.start(t, off); n.stop(t + 0.15); n2.start(t, off); n2.stop(t + 0.1);
+    try { if (FS.ctx !== ctx) fsBuild(ctx); fsStep(ctx, fsSurface(), quiet, loud); } catch (e) { /* audio is optional */ }
+  }
+  function fsStep(ctx, surf, quiet, loud) {
+    const B = FS.B, sf = SURF[surf] || SURF.asphalt, R = (a, b) => a + (b - a) * Math.random();
+    const bq = (type, f, q) => { const b = ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q; return b; };
+    const play = (buf, t, off, dur, chain) => { const n = ctx.createBufferSource(); n.buffer = buf; n.connect(chain); n.start(t, off); n.stop(t + dur); };
+    const t = ctx.currentTime + 0.005 + R(0, 0.012), pk = R(0.88, 1.13);
+    const gait = quiet ? 0.3 : loud ? 1.25 : 1, lv = R(0.8, 1.12) * gait * (sf.trim || 1);
+    const gap = quiet ? R(0.12, 0.18) : loud ? R(0.04, 0.065) : R(0.07, 0.11);
+    FS.foot ^= 1;
+    // per-step chain: layers -> g -> lowpass (soft surfaces, crouch) -> pan -> out (+ short room reflection)
+    const g = ctx.createGain(); g.gain.value = 0.42 * lv;
+    const lp = bq('lowpass', Math.min(sf.lp || 12000, quiet ? 2600 : 12000), 0.7); g.connect(lp); let tail = lp;
+    if (ctx.createStereoPanner) { const p = ctx.createStereoPanner(); p.pan.value = (FS.foot ? 0.12 : -0.12) * R(0.6, 1.2); tail.connect(p); tail = p; }
+    tail.connect(FS.out);
+    if (sf.verb) { const dl = ctx.createDelay(0.1), vg = ctx.createGain(); dl.delayTime.value = R(0.014, 0.03); vg.gain.value = sf.verb; tail.connect(dl); dl.connect(vg); vg.connect(FS.out); }
+    // heel, then toe (toe softer when walking, nearly equal when running), toe a touch brighter
+    const hit = (th, k, bright) => {
+      const [tf, tv] = sf.thud, [cf, cq, cv, cd] = sf.click;
+      if (tv > 0) { const o = ctx.createOscillator(), og = ctx.createGain(); o.frequency.setValueAtTime(tf * pk * 1.6, th); o.frequency.exponentialRampToValueAtTime(tf * pk * 0.7, th + 0.05);
+        og.gain.setValueAtTime(0, th); og.gain.linearRampToValueAtTime(tv * k, th + 0.003); og.gain.setTargetAtTime(0, th + 0.004, 0.018); o.connect(og); og.connect(g); o.start(th); o.stop(th + 0.12); }
+      if (cv > 0) { const bp = bq('bandpass', cf * pk * bright * R(0.9, 1.1), cq), cg = ctx.createGain(); cg.gain.setValueAtTime(0, th); cg.gain.linearRampToValueAtTime(cv * k, th + 0.001); cg.gain.setTargetAtTime(0, th + 0.0015, cd);
+        bp.connect(cg); cg.connect(g); play(B.white, th, R(0, 0.9), cd * 7, bp); }
+    };
+    hit(t, 1, 1); hit(t + gap, loud ? R(0.75, 0.95) : R(0.45, 0.7), 1.25);
+    // body: the sole rolling and scuffing, heel to toe
+    { const [bf, bv, bd, nz] = sf.body, bp = bq('bandpass', bf * pk, 0.8), bg = ctx.createGain(), v = bv * (loud ? 1.3 : 1);
+      bg.gain.setValueAtTime(0, t); bg.gain.linearRampToValueAtTime(v, t + 0.008); bg.gain.setValueAtTime(v * 0.7, t + gap); bg.gain.setTargetAtTime(0, t + gap + 0.005, bd / 2.5);
+      bp.connect(bg); bg.connect(g); play(B[nz] || B.brown, t, R(0, 0.85), gap + bd * 3, bp); }
+    // surface layers
+    if (sf.wet) { const big = Math.random() < 0.18, hp = bq('highpass', big ? 500 : 900, 0.7), wg = ctx.createGain(), w = sf.wet * (big ? 1.7 : R(0.6, 1.1)) * (loud ? 1.3 : 1);
+      // big = a deeper puddle: lower cut, longer bubbles
+      wg.gain.setValueAtTime(w, t + 0.004); wg.gain.setTargetAtTime(0, t + gap, big ? 0.08 : 0.045); hp.connect(wg); wg.connect(g); play(B.splash, t + 0.004, R(0, 0.02), big ? 0.45 : 0.25, hp);
+    }
+    if (sf.grit) { const bp = bq('bandpass', 2600 * pk, 0.45), gg = ctx.createGain(), v = sf.grit * (loud ? 1.25 : 1);
+      gg.gain.setValueAtTime(0, t); gg.gain.linearRampToValueAtTime(v, t + 0.012); gg.gain.setValueAtTime(v * 0.8, t + gap + 0.03); gg.gain.setTargetAtTime(0, t + gap + 0.035, 0.035);
+      bp.connect(gg); gg.connect(g); play(B.grit, t, R(0, 0.75), gap + 0.25, bp); }
+    if (sf.creak && Math.random() < sf.creak * (quiet ? 1.6 : 1)) { // a floorboard: stick-slip pulses through a wood resonance
+      const tc = t + gap * R(0.5, 1.2), dur = R(0.14, 0.34), o = ctx.createOscillator(), bp = bq('bandpass', R(650, 1300), 7), cg = ctx.createGain(), f = R(28, 55);
+      o.type = 'sawtooth'; o.frequency.setValueAtTime(f, tc); o.frequency.linearRampToValueAtTime(f * R(1.2, 1.8), tc + dur);
+      cg.gain.setValueAtTime(0, tc); cg.gain.linearRampToValueAtTime(0.5, tc + dur * 0.3); cg.gain.linearRampToValueAtTime(0, tc + dur);
+      o.connect(bp); bp.connect(cg); cg.connect(g); o.start(tc); o.stop(tc + dur + 0.02); }
+    if (sf.ring) for (const [f, d] of [[1130, 0.14], [2790, 0.07]]) { const o = ctx.createOscillator(), og = ctx.createGain();
+      o.frequency.value = f * pk; og.gain.setValueAtTime(sf.ring, t); og.gain.setTargetAtTime(0, t + 0.002, d / 3); o.connect(og); og.connect(g); o.start(t); o.stop(t + d * 2); }
   }
 
   /* ---------- collision ---------- */

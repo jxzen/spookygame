@@ -274,7 +274,11 @@
     } else { g.gain.value = gain; g.connect(ctx.destination); }
     return node;
   }
-  function noise(ctx) { if (!noiseBuf) { noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; } const s = ctx.createBufferSource(); s.buffer = noiseBuf; s.loop = true; return s; }
+  // H16: the monster's continuous static lives in audio.js (threat-scaled bursts that duck the music). Here: one-shots only.
+  // The noise buffer is built on 'audio-ready' (not on her first sound, which would hitch mid-play).
+  function noiseBuild(ctx) { if (noiseBuf && noiseBuf.sampleRate === ctx.sampleRate) return; noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+  if (G.on) G.on('audio-ready', c => { try { if (c || G.audioCtx) noiseBuild(c || G.audioCtx); } catch (e) { /* audio is optional */ } });
+  function noise(ctx) { noiseBuild(ctx); const s = ctx.createBufferSource(); s.buffer = noiseBuf; s.loop = true; return s; }
   const SFX = {
     drag(pos) { const c = ac(); if (!c) return; const t = c.currentTime, o = out(c, pos, 0.35), n = noise(c), f = c.createBiquadFilter(), g = c.createGain();
       f.type = 'bandpass'; f.frequency.setValueAtTime(380, t); f.frequency.linearRampToValueAtTime(220, t + 1.6); f.Q.value = 1.4;
@@ -294,7 +298,9 @@
       [1, 1.06, 1.49].forEach((m, i) => { const s = c.createOscillator(), g = c.createGain(); s.type = i ? 'sawtooth' : 'square';
         s.frequency.setValueAtTime(700 * m, t); s.frequency.exponentialRampToValueAtTime(1900 * m, t + 0.12); s.frequency.exponentialRampToValueAtTime(520 * m, t + len);
         g.gain.setValueAtTime(0.001, t); g.gain.exponentialRampToValueAtTime(0.22, t + 0.03); g.gain.exponentialRampToValueAtTime(0.001, t + len); s.connect(g); g.connect(o); s.start(t); s.stop(t + len + 0.05); });
-      const n = noise(c), g2 = c.createGain(); g2.gain.setValueAtTime(0.5, t); g2.gain.exponentialRampToValueAtTime(0.001, t + len * 0.7); n.connect(g2); g2.connect(o); n.start(t); n.stop(t + len); }
+      // breath under the scream: band-limited and short (was full-band white noise at 0.5, which read as a wall of static)
+      const n = noise(c), bp = c.createBiquadFilter(), g2 = c.createGain(); bp.type = 'bandpass'; bp.frequency.value = rand(1800, 2600); bp.Q.value = 0.8;
+      g2.gain.setValueAtTime(0.001, t); g2.gain.exponentialRampToValueAtTime(0.16, t + 0.02); g2.gain.exponentialRampToValueAtTime(0.001, t + len * 0.45); n.connect(bp); bp.connect(g2); g2.connect(o); n.start(t, Math.random()); n.stop(t + len); }
   };
   function soundAround(kind) { // stage 1-3: from above or behind, never in front
     const P = playerPos(), back = camForward().negate().applyAxisAngle(new V3(0, 1, 0), rand(-1.2, 1.2));
