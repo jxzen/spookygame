@@ -1,0 +1,1044 @@
+{
+    "kit":  "ENV-01 japan noir town kit",
+    "version":  "0.1 (2026-11-12)",
+    "units":  "metres",
+    "up":  "+Y (three.js / glTF)",
+    "origin":  "street-front bottom centre of each module",
+    "facing":  "street front faces +Z; module body extends toward -Z; width along X",
+    "coords_note":  "pos = three.js coords of marker nodes (also present as named empty nodes in each GLB, with extras); pos_blender = source coords (Z-up, front faces -Y)",
+    "placement":  "left side of a street running along -Z: rotate +90 deg about Y; right side: -90 deg. Street lane width used in the preview: 5.0 m",
+    "palette":  "greys/black; red only for lanterns, torii, tobacco sign, one vending machine, pharmacy lettering",
+    "materials":  "PBR metallic-roughness; baseColor + ORM (G=roughness, B=metal) 256px textures per material; emissive for lanterns/signs/vending glow (KHR_materials_emissive_strength ignored by r128: emissive factor alone gives the glow)",
+    "modules":  [
+                    {
+                        "name":  "shop_izakaya",
+                        "file":  "shop_izakaya.glb",
+                        "kind":  "shop",
+                        "enterable":  true,
+                        "footprint_m":  {
+                                            "width":  4.0,
+                                            "depth":  7.0
+                                        },
+                        "height_m":  6.55,
+                        "tris":  4092,
+                        "bytes":  317236,
+                        "doors":  [
+                                      {
+                                          "name":  "DOOR_main",
+                                          "pos":  [
+                                                      0.8,
+                                                      0.0,
+                                                      0.0
+                                                  ],
+                                          "pos_blender":  [
+                                                              0.8,
+                                                              0.0,
+                                                              0.0
+                                                          ],
+                                          "width":  1.6,
+                                          "height":  2.1,
+                                          "note":  "open half behind the noren"
+                                      }
+                                  ],
+                        "hide_spots":  [
+                                           {
+                                               "name":  "HIDE_counter",
+                                               "pos":  [
+                                                           0.4,
+                                                           0.0,
+                                                           -4.1
+                                                       ],
+                                               "pos_blender":  [
+                                                                   0.4,
+                                                                   4.1,
+                                                                   0.0
+                                                               ],
+                                               "pose":  "crouch",
+                                               "radius":  0.6,
+                                               "note":  "behind the counter, out of sight from the street"
+                                           }
+                                       ],
+                        "attach":  [
+                                       {
+                                           "name":  "ATTACH_lantern",
+                                           "pos":  [
+                                                       -1.83,
+                                                       2.62,
+                                                       0.38
+                                                   ],
+                                           "pos_blender":  [
+                                                               -1.83,
+                                                               -0.38,
+                                                               2.62
+                                                           ],
+                                           "type":  "lantern_red"
+                                       },
+                                       {
+                                           "name":  "ATTACH_sign_left",
+                                           "pos":  [
+                                                       -2.0,
+                                                       5.6,
+                                                       0.0
+                                                   ],
+                                           "pos_blender":  [
+                                                               -2.0,
+                                                               0.0,
+                                                               5.6
+                                                           ],
+                                           "type":  "sign_vertical",
+                                           "note":  "hang a vertical sign; it projects toward the street"
+                                       },
+                                       {
+                                           "name":  "ATTACH_wire",
+                                           "pos":  [
+                                                       1.8,
+                                                       5.6,
+                                                       0.0
+                                                   ],
+                                           "pos_blender":  [
+                                                               1.8,
+                                                               0.0,
+                                                               5.6
+                                                           ],
+                                           "type":  "service_wire"
+                                       }
+                                   ],
+                        "lights":  [
+                                       {
+                                           "name":  "LIGHT_lantern",
+                                           "pos":  [
+                                                       -1.83,
+                                                       2.25,
+                                                       0.38
+                                                   ],
+                                           "pos_blender":  [
+                                                               -1.83,
+                                                               -0.38,
+                                                               2.25
+                                                           ],
+                                           "type":  "point",
+                                           "color":  "red",
+                                           "note":  "put the red point light here"
+                                       }
+                                   ],
+                        "tris_glb":  4092
+                    },
+                    {
+                        "name":  "shop_tobacco",
+                        "file":  "shop_tobacco.glb",
+                        "kind":  "shop",
+                        "enterable":  true,
+                        "footprint_m":  {
+                                            "width":  2.8,
+                                            "depth":  4.0
+                                        },
+                        "height_m":  5.95,
+                        "tris":  1961,
+                        "bytes":  177040,
+                        "doors":  [
+                                      {
+                                          "name":  "DOOR_shutter",
+                                          "pos":  [
+                                                      0.0,
+                                                      0.0,
+                                                      0.0
+                                                  ],
+                                          "pos_blender":  [
+                                                              0.0,
+                                                              0.0,
+                                                              0.0
+                                                          ],
+                                          "width":  2.36,
+                                          "height":  0.82,
+                                          "crouch":  1,
+                                          "note":  "crawl under the half-open shutter"
+                                      }
+                                  ],
+                        "hide_spots":  [
+                                           {
+                                               "name":  "HIDE_case",
+                                               "pos":  [
+                                                           -0.4,
+                                                           0.0,
+                                                           -1.7
+                                                       ],
+                                               "pos_blender":  [
+                                                                   -0.4,
+                                                                   1.7,
+                                                                   0.0
+                                                               ],
+                                               "pose":  "crouch",
+                                               "radius":  0.5,
+                                               "note":  "behind the display case, below shutter line"
+                                           }
+                                       ],
+                        "attach":  [
+                                       {
+                                           "name":  "ATTACH_sign_right",
+                                           "pos":  [
+                                                       1.4,
+                                                       5.2,
+                                                       0.0
+                                                   ],
+                                           "pos_blender":  [
+                                                               1.4,
+                                                               0.0,
+                                                               5.2
+                                                           ],
+                                           "type":  "sign_vertical"
+                                       },
+                                       {
+                                           "name":  "ATTACH_wire",
+                                           "pos":  [
+                                                       -1.2,
+                                                       5.0,
+                                                       0.0
+                                                   ],
+                                           "pos_blender":  [
+                                                               -1.2,
+                                                               0.0,
+                                                               5.0
+                                                           ],
+                                           "type":  "service_wire"
+                                       }
+                                   ],
+                        "tris_glb":  1961
+                    },
+                    {
+                        "name":  "shop_pharmacy",
+                        "file":  "shop_pharmacy.glb",
+                        "kind":  "shop",
+                        "enterable":  true,
+                        "footprint_m":  {
+                                            "width":  5.0,
+                                            "depth":  8.0
+                                        },
+                        "height_m":  6.75,
+                        "tris":  2336,
+                        "bytes":  216320,
+                        "doors":  [
+                                      {
+                                          "name":  "DOOR_backroom",
+                                          "pos":  [
+                                                      1.45,
+                                                      0.0,
+                                                      -5.86
+                                                  ],
+                                          "pos_blender":  [
+                                                              1.45,
+                                                              5.86,
+                                                              0.0
+                                                          ],
+                                          "width":  0.9,
+                                          "height":  2.1,
+                                          "note":  "partition doorway, door ajar"
+                                      },
+                                      {
+                                          "name":  "DOOR_main",
+                                          "pos":  [
+                                                      0.4,
+                                                      0.0,
+                                                      0.0
+                                                  ],
+                                          "pos_blender":  [
+                                                              0.4,
+                                                              0.0,
+                                                              0.0
+                                                          ],
+                                          "width":  0.7,
+                                          "height":  2.1,
+                                          "note":  "door slid open 0.7 m"
+                                      }
+                                  ],
+                        "hide_spots":  [
+                                           {
+                                               "name":  "HIDE_backroom",
+                                               "pos":  [
+                                                           0.4,
+                                                           0.0,
+                                                           -7.0
+                                                       ],
+                                               "pos_blender":  [
+                                                                   0.4,
+                                                                   7.0,
+                                                                   0.0
+                                                               ],
+                                               "pose":  "stand",
+                                               "radius":  0.6,
+                                               "note":  "back room, out of line of sight from the street door"
+                                           },
+                                           {
+                                               "name":  "HIDE_counter",
+                                               "pos":  [
+                                                           -1.3,
+                                                           0.0,
+                                                           -5.6
+                                                       ],
+                                               "pos_blender":  [
+                                                                   -1.3,
+                                                                   5.6,
+                                                                   0.0
+                                                               ],
+                                               "pose":  "crouch",
+                                               "radius":  0.5
+                                           }
+                                       ],
+                        "attach":  [
+                                       {
+                                           "name":  "ATTACH_sign_left",
+                                           "pos":  [
+                                                       -2.5,
+                                                       5.8,
+                                                       0.0
+                                                   ],
+                                           "pos_blender":  [
+                                                               -2.5,
+                                                               0.0,
+                                                               5.8
+                                                           ],
+                                           "type":  "sign_vertical"
+                                       },
+                                       {
+                                           "name":  "ATTACH_wire",
+                                           "pos":  [
+                                                       2.3,
+                                                       5.8,
+                                                       0.0
+                                                   ],
+                                           "pos_blender":  [
+                                                               2.3,
+                                                               0.0,
+                                                               5.8
+                                                           ],
+                                           "type":  "service_wire"
+                                       }
+                                   ],
+                        "tris_glb":  2336
+                    },
+                    {
+                        "name":  "facade_machiya",
+                        "file":  "facade_machiya.glb",
+                        "kind":  "facade",
+                        "enterable":  false,
+                        "footprint_m":  {
+                                            "width":  5.4,
+                                            "depth":  6.0
+                                        },
+                        "height_m":  6.7,
+                        "tris":  1828,
+                        "bytes":  173844,
+                        "doors":  [
+                                      {
+                                          "name":  "DOOR_locked",
+                                          "pos":  [
+                                                      0.47,
+                                                      0.0,
+                                                      0.0
+                                                  ],
+                                          "pos_blender":  [
+                                                              0.47,
+                                                              0.0,
+                                                              0.0
+                                                          ],
+                                          "width":  0.95,
+                                          "height":  2.1,
+                                          "locked":  1,
+                                          "note":  "rattles; not enterable"
+                                      }
+                                  ],
+                        "attach":  [
+                                       {
+                                           "name":  "ATTACH_lantern",
+                                           "pos":  [
+                                                       1.5,
+                                                       2.6,
+                                                       0.3
+                                                   ],
+                                           "pos_blender":  [
+                                                               1.5,
+                                                               -0.3,
+                                                               2.6
+                                                           ],
+                                           "type":  "lantern_red"
+                                       },
+                                       {
+                                           "name":  "ATTACH_sign_right",
+                                           "pos":  [
+                                                       2.7,
+                                                       5.3,
+                                                       0.0
+                                                   ],
+                                           "pos_blender":  [
+                                                               2.7,
+                                                               0.0,
+                                                               5.3
+                                                           ],
+                                           "type":  "sign_vertical"
+                                       },
+                                       {
+                                           "name":  "ATTACH_wire",
+                                           "pos":  [
+                                                       -2.5,
+                                                       5.2,
+                                                       0.0
+                                                   ],
+                                           "pos_blender":  [
+                                                               -2.5,
+                                                               0.0,
+                                                               5.2
+                                                           ],
+                                           "type":  "service_wire"
+                                       }
+                                   ],
+                        "tris_glb":  1828
+                    },
+                    {
+                        "name":  "facade_apartment",
+                        "file":  "facade_apartment.glb",
+                        "kind":  "facade",
+                        "enterable":  false,
+                        "footprint_m":  {
+                                            "width":  10.0,
+                                            "depth":  8.0
+                                        },
+                        "height_m":  9.6,
+                        "tris":  2216,
+                        "bytes":  176268,
+                        "doors":  [
+                                      {
+                                          "name":  "DOOR_unit_101",
+                                          "pos":  [
+                                                      -3.18,
+                                                      0.0,
+                                                      -1.4
+                                                  ],
+                                          "pos_blender":  [
+                                                              -3.18,
+                                                              1.4,
+                                                              0.0
+                                                          ],
+                                          "width":  0.85,
+                                          "height":  2.0,
+                                          "locked":  1
+                                      },
+                                      {
+                                          "name":  "DOOR_unit_102",
+                                          "pos":  [
+                                                      -0.18,
+                                                      0.0,
+                                                      -1.4
+                                                  ],
+                                          "pos_blender":  [
+                                                              -0.18,
+                                                              1.4,
+                                                              0.0
+                                                          ],
+                                          "width":  0.85,
+                                          "height":  2.0,
+                                          "locked":  1
+                                      },
+                                      {
+                                          "name":  "DOOR_unit_202",
+                                          "pos":  [
+                                                      -0.18,
+                                                      2.9,
+                                                      -1.4
+                                                  ],
+                                          "pos_blender":  [
+                                                              -0.18,
+                                                              1.4,
+                                                              2.9
+                                                          ],
+                                          "width":  0.85,
+                                          "height":  2.0,
+                                          "locked":  0,
+                                          "note":  "ajar: a candidate for a scripted beat"
+                                      }
+                                  ],
+                        "hide_spots":  [
+                                           {
+                                               "name":  "HIDE_under_stairs",
+                                               "pos":  [
+                                                           3.1,
+                                                           0.0,
+                                                           -3.4
+                                                       ],
+                                               "pos_blender":  [
+                                                                   3.1,
+                                                                   3.4,
+                                                                   0.0
+                                                               ],
+                                               "pose":  "crouch",
+                                               "radius":  0.6,
+                                               "note":  "under flight A, in shadow"
+                                           }
+                                       ],
+                        "attach":  [
+                                       {
+                                           "name":  "ATTACH_wire",
+                                           "pos":  [
+                                                       -4.8,
+                                                       8.4,
+                                                       0.0
+                                                   ],
+                                           "pos_blender":  [
+                                                               -4.8,
+                                                               0.0,
+                                                               8.4
+                                                           ],
+                                           "type":  "service_wire"
+                                       }
+                                   ],
+                        "other":  [
+                                      {
+                                          "name":  "STAIRS_up",
+                                          "pos":  [
+                                                      3.1,
+                                                      0.0,
+                                                      -1.4
+                                                  ],
+                                          "pos_blender":  [
+                                                              3.1,
+                                                              1.4,
+                                                              0.0
+                                                          ],
+                                          "note":  "walkable switchback to floors 2 and 3"
+                                      }
+                                  ],
+                        "tris_glb":  2216
+                    },
+                    {
+                        "name":  "lantern_red",
+                        "file":  "lantern_red.glb",
+                        "kind":  "prop",
+                        "enterable":  false,
+                        "footprint_m":  {
+                                            "width":  0.4,
+                                            "depth":  0.4
+                                        },
+                        "height_m":  0.75,
+                        "tris":  540,
+                        "bytes":  34556,
+                        "attach":  [
+                                       {
+                                           "name":  "ATTACH_hook",
+                                           "pos":  [
+                                                       0.0,
+                                                       0.0,
+                                                       0.2
+                                                   ],
+                                           "pos_blender":  [
+                                                               0.0,
+                                                               -0.2,
+                                                               0.0
+                                                           ],
+                                           "type":  "hang_from"
+                                       }
+                                   ],
+                        "tris_glb":  540
+                    },
+                    {
+                        "name":  "lantern_paper",
+                        "file":  "lantern_paper.glb",
+                        "kind":  "prop",
+                        "enterable":  false,
+                        "footprint_m":  {
+                                            "width":  0.5,
+                                            "depth":  0.5
+                                        },
+                        "height_m":  1.0,
+                        "tris":  827,
+                        "bytes":  48364,
+                        "attach":  [
+                                       {
+                                           "name":  "ATTACH_hook",
+                                           "pos":  [
+                                                       0.0,
+                                                       0.0,
+                                                       0.0
+                                                   ],
+                                           "pos_blender":  [
+                                                               0.0,
+                                                               0.0,
+                                                               0.0
+                                                           ],
+                                           "type":  "hang_from"
+                                       }
+                                   ],
+                        "tris_glb":  827
+                    },
+                    {
+                        "name":  "sign_vertical_snack",
+                        "file":  "sign_vertical_snack.glb",
+                        "kind":  "prop",
+                        "enterable":  false,
+                        "footprint_m":  {
+                                            "width":  0.12,
+                                            "depth":  0.75
+                                        },
+                        "height_m":  1.9,
+                        "tris":  514,
+                        "bytes":  40612,
+                        "attach":  [
+                                       {
+                                           "name":  "ATTACH_wall",
+                                           "pos":  [
+                                                       0.0,
+                                                       0.0,
+                                                       0.0
+                                                   ],
+                                           "pos_blender":  [
+                                                               0.0,
+                                                               0.0,
+                                                               0.0
+                                                           ],
+                                           "type":  "facade",
+                                           "note":  "origin = top of the wall bracket; sign projects toward the street"
+                                       }
+                                   ],
+                        "tris_glb":  514
+                    },
+                    {
+                        "name":  "sign_vertical_red",
+                        "file":  "sign_vertical_red.glb",
+                        "kind":  "prop",
+                        "enterable":  false,
+                        "footprint_m":  {
+                                            "width":  0.12,
+                                            "depth":  0.65
+                                        },
+                        "height_m":  1.5,
+                        "tris":  660,
+                        "bytes":  44260,
+                        "attach":  [
+                                       {
+                                           "name":  "ATTACH_wall",
+                                           "pos":  [
+                                                       0.0,
+                                                       0.0,
+                                                       0.0
+                                                   ],
+                                           "pos_blender":  [
+                                                               0.0,
+                                                               0.0,
+                                                               0.0
+                                                           ],
+                                           "type":  "facade"
+                                       }
+                                   ],
+                        "tris_glb":  660
+                    },
+                    {
+                        "name":  "sign_vertical_lit",
+                        "file":  "sign_vertical_lit.glb",
+                        "kind":  "prop",
+                        "enterable":  false,
+                        "footprint_m":  {
+                                            "width":  0.12,
+                                            "depth":  0.65
+                                        },
+                        "height_m":  1.4,
+                        "tris":  858,
+                        "bytes":  51776,
+                        "attach":  [
+                                       {
+                                           "name":  "ATTACH_wall",
+                                           "pos":  [
+                                                       0.0,
+                                                       0.0,
+                                                       0.0
+                                                   ],
+                                           "pos_blender":  [
+                                                               0.0,
+                                                               0.0,
+                                                               0.0
+                                                           ],
+                                           "type":  "facade"
+                                       }
+                                   ],
+                        "tris_glb":  858
+                    },
+                    {
+                        "name":  "utility_pole",
+                        "file":  "utility_pole.glb",
+                        "kind":  "prop",
+                        "enterable":  false,
+                        "footprint_m":  {
+                                            "width":  2.0,
+                                            "depth":  1.6
+                                        },
+                        "height_m":  12.0,
+                        "tris":  896,
+                        "bytes":  100416,
+                        "attach":  [
+                                       {
+                                           "name":  "ATTACH_wire_hv0",
+                                           "pos":  [
+                                                       -0.85,
+                                                       11.37,
+                                                       0.0
+                                                   ],
+                                           "pos_blender":  [
+                                                               -0.85,
+                                                               0.0,
+                                                               11.37
+                                                           ],
+                                           "type":  "wire"
+                                       },
+                                       {
+                                           "name":  "ATTACH_wire_hv1",
+                                           "pos":  [
+                                                       -0.3,
+                                                       11.37,
+                                                       0.0
+                                                   ],
+                                           "pos_blender":  [
+                                                               -0.3,
+                                                               0.0,
+                                                               11.37
+                                                           ],
+                                           "type":  "wire"
+                                       },
+                                       {
+                                           "name":  "ATTACH_wire_hv2",
+                                           "pos":  [
+                                                       0.3,
+                                                       11.37,
+                                                       0.0
+                                                   ],
+                                           "pos_blender":  [
+                                                               0.3,
+                                                               0.0,
+                                                               11.37
+                                                           ],
+                                           "type":  "wire"
+                                       },
+                                       {
+                                           "name":  "ATTACH_wire_hv3",
+                                           "pos":  [
+                                                       0.85,
+                                                       11.37,
+                                                       0.0
+                                                   ],
+                                           "pos_blender":  [
+                                                               0.85,
+                                                               0.0,
+                                                               11.37
+                                                           ],
+                                           "type":  "wire"
+                                       },
+                                       {
+                                           "name":  "ATTACH_wire_mv0",
+                                           "pos":  [
+                                                       -0.7,
+                                                       10.37,
+                                                       0.0
+                                                   ],
+                                           "pos_blender":  [
+                                                               -0.7,
+                                                               0.0,
+                                                               10.37
+                                                           ],
+                                           "type":  "wire"
+                                       },
+                                       {
+                                           "name":  "ATTACH_wire_mv1",
+                                           "pos":  [
+                                                       0.0,
+                                                       10.37,
+                                                       0.0
+                                                   ],
+                                           "pos_blender":  [
+                                                               0.0,
+                                                               0.0,
+                                                               10.37
+                                                           ],
+                                           "type":  "wire"
+                                       },
+                                       {
+                                           "name":  "ATTACH_wire_mv2",
+                                           "pos":  [
+                                                       0.7,
+                                                       10.37,
+                                                       0.0
+                                                   ],
+                                           "pos_blender":  [
+                                                               0.7,
+                                                               0.0,
+                                                               10.37
+                                                           ],
+                                           "type":  "wire"
+                                       },
+                                       {
+                                           "name":  "ATTACH_wire_tel0",
+                                           "pos":  [
+                                                       -0.45,
+                                                       6.28,
+                                                       0.0
+                                                   ],
+                                           "pos_blender":  [
+                                                               -0.45,
+                                                               0.0,
+                                                               6.28
+                                                           ],
+                                           "type":  "wire"
+                                       },
+                                       {
+                                           "name":  "ATTACH_wire_tel1",
+                                           "pos":  [
+                                                       0.45,
+                                                       6.28,
+                                                       0.0
+                                                   ],
+                                           "pos_blender":  [
+                                                               0.45,
+                                                               0.0,
+                                                               6.28
+                                                           ],
+                                           "type":  "wire"
+                                       }
+                                   ],
+                        "lights":  [
+                                       {
+                                           "name":  "LIGHT_lamp",
+                                           "pos":  [
+                                                       0.0,
+                                                       5.75,
+                                                       1.35
+                                                   ],
+                                           "pos_blender":  [
+                                                               0.0,
+                                                               -1.35,
+                                                               5.75
+                                                           ],
+                                           "type":  "spot_down",
+                                           "note":  "flickers"
+                                       }
+                                   ],
+                        "tris_glb":  896
+                    },
+                    {
+                        "name":  "wire_set_20m",
+                        "file":  "wire_set_20m.glb",
+                        "kind":  "prop",
+                        "enterable":  false,
+                        "footprint_m":  {
+                                            "width":  1.8,
+                                            "depth":  20.0
+                                        },
+                        "height_m":  1.2,
+                        "tris":  1080,
+                        "bytes":  81292,
+                        "tris_glb":  1080
+                    },
+                    {
+                        "name":  "vending_machine",
+                        "file":  "vending_machine.glb",
+                        "kind":  "prop",
+                        "enterable":  false,
+                        "footprint_m":  {
+                                            "width":  1.0,
+                                            "depth":  0.75
+                                        },
+                        "height_m":  1.83,
+                        "tris":  660,
+                        "bytes":  81636,
+                        "lights":  [
+                                       {
+                                           "name":  "LIGHT_panel",
+                                           "pos":  [
+                                                       0.0,
+                                                       1.35,
+                                                       0.3
+                                                   ],
+                                           "pos_blender":  [
+                                                               0.0,
+                                                               -0.3,
+                                                               1.35
+                                                           ],
+                                           "type":  "area",
+                                           "note":  "cold white glow"
+                                       }
+                                   ],
+                        "tris_glb":  660
+                    },
+                    {
+                        "name":  "vending_machine_red",
+                        "file":  "vending_machine_red.glb",
+                        "kind":  "prop",
+                        "enterable":  false,
+                        "footprint_m":  {
+                                            "width":  1.0,
+                                            "depth":  0.75
+                                        },
+                        "height_m":  1.83,
+                        "tris":  660,
+                        "bytes":  74532,
+                        "lights":  [
+                                       {
+                                           "name":  "LIGHT_panel",
+                                           "pos":  [
+                                                       0.0,
+                                                       1.35,
+                                                       0.3
+                                                   ],
+                                           "pos_blender":  [
+                                                               0.0,
+                                                               -0.3,
+                                                               1.35
+                                                           ],
+                                           "type":  "area"
+                                       }
+                                   ],
+                        "tris_glb":  660
+                    },
+                    {
+                        "name":  "phone_booth",
+                        "file":  "phone_booth.glb",
+                        "kind":  "prop",
+                        "enterable":  false,
+                        "footprint_m":  {
+                                            "width":  1.05,
+                                            "depth":  1.05
+                                        },
+                        "height_m":  2.3,
+                        "tris":  852,
+                        "bytes":  73820,
+                        "doors":  [
+                                      {
+                                          "name":  "DOOR_main",
+                                          "pos":  [
+                                                      0.0,
+                                                      0.0,
+                                                      0.0
+                                                  ],
+                                          "pos_blender":  [
+                                                              0.0,
+                                                              0.0,
+                                                              0.0
+                                                          ],
+                                          "width":  0.8,
+                                          "height":  1.9,
+                                          "note":  "hiding is possible but you are visible through glass"
+                                      }
+                                  ],
+                        "tris_glb":  852
+                    },
+                    {
+                        "name":  "bicycle",
+                        "file":  "bicycle.glb",
+                        "kind":  "prop",
+                        "enterable":  false,
+                        "footprint_m":  {
+                                            "width":  0.6,
+                                            "depth":  1.75
+                                        },
+                        "height_m":  1.1,
+                        "tris":  740,
+                        "bytes":  66968,
+                        "tris_glb":  740
+                    },
+                    {
+                        "name":  "trash_pile",
+                        "file":  "trash_pile.glb",
+                        "kind":  "prop",
+                        "enterable":  false,
+                        "footprint_m":  {
+                                            "width":  1.8,
+                                            "depth":  1.2
+                                        },
+                        "height_m":  0.8,
+                        "tris":  508,
+                        "bytes":  45432,
+                        "tris_glb":  508
+                    },
+                    {
+                        "name":  "street_clutter",
+                        "file":  "street_clutter.glb",
+                        "kind":  "prop",
+                        "enterable":  false,
+                        "footprint_m":  {
+                                            "width":  1.3,
+                                            "depth":  0.4
+                                        },
+                        "height_m":  0.95,
+                        "tris":  327,
+                        "bytes":  46852,
+                        "tris_glb":  327
+                    },
+                    {
+                        "name":  "umbrella_dropped",
+                        "file":  "umbrella_dropped.glb",
+                        "kind":  "prop",
+                        "enterable":  false,
+                        "footprint_m":  {
+                                            "width":  1.0,
+                                            "depth":  1.0
+                                        },
+                        "height_m":  0.5,
+                        "tris":  28,
+                        "bytes":  13456,
+                        "tris_glb":  28
+                    },
+                    {
+                        "name":  "torii",
+                        "file":  "torii.glb",
+                        "kind":  "prop",
+                        "enterable":  false,
+                        "footprint_m":  {
+                                            "width":  5.0,
+                                            "depth":  0.5
+                                        },
+                        "height_m":  4.1,
+                        "tris":  525,
+                        "bytes":  43948,
+                        "doors":  [
+                                      {
+                                          "name":  "DOOR_pass",
+                                          "pos":  [
+                                                      0.0,
+                                                      0.0,
+                                                      0.0
+                                                  ],
+                                          "pos_blender":  [
+                                                              0.0,
+                                                              0.0,
+                                                              0.0
+                                                          ],
+                                          "width":  2.6,
+                                          "height":  3.0
+                                      }
+                                  ],
+                        "tris_glb":  525
+                    },
+                    {
+                        "name":  "stone_lantern",
+                        "file":  "stone_lantern.glb",
+                        "kind":  "prop",
+                        "enterable":  false,
+                        "footprint_m":  {
+                                            "width":  0.72,
+                                            "depth":  0.72
+                                        },
+                        "height_m":  1.7,
+                        "tris":  184,
+                        "bytes":  23248,
+                        "tris_glb":  184
+                    },
+                    {
+                        "name":  "puddle_decals",
+                        "file":  "puddle_decals.glb",
+                        "kind":  "decal",
+                        "enterable":  false,
+                        "footprint_m":  {
+                                            "width":  3.0,
+                                            "depth":  1.5
+                                        },
+                        "height_m":  0.01,
+                        "tris":  6,
+                        "bytes":  34088,
+                        "tris_glb":  6
+                    }
+                ],
+    "tris_note":  "tris = Blender triangulation; tris_glb = index count/3 in the GLB (identical). viewer.html adds 80 tris per marker sphere."
+}

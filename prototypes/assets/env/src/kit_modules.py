@@ -157,7 +157,7 @@ def mod_izakaya():
     return finish_mod("shop_izakaya", c, root, b, [
         ("DOOR_main", (0.8, 0.0, 0.0), dict(width=1.6, height=2.1, note="open half behind the noren")),
         ("HIDE_counter", (0.4, 4.1, 0.0), dict(pose="crouch", radius=0.6, note="behind the counter, out of sight from the street")),
-        ("ATTACH_sign_left", (-W / 2, 0.0, 5.6), dict(type="sign_vertical", note="hang a vertical sign, projecting -Y")),
+        ("ATTACH_sign_left", (-W / 2, 0.0, 5.6), dict(type="sign_vertical", note="hang a vertical sign; it projects toward the street")),
         ("ATTACH_lantern", (-1.83, -0.38, 2.62), dict(type="lantern_red")),
         ("ATTACH_wire", (W / 2 - 0.2, 0.0, 5.6), dict(type="service_wire")),
         ("LIGHT_lantern", (-1.83, -0.38, 2.25), dict(type="point", color="red", note="put the red point light here")),
@@ -193,8 +193,8 @@ def mod_tobacco():
         for j in range(10):
             b.box(-1.15 + j * 0.23, -0.97 + j * 0.23, 3.3, 3.45, zz + 0.03, zz + 0.3,
                   "sign_white" if (j + int(zz * 10)) % 3 else "red_paint")
-    b.cyl((0.8, 2.2, 0.04), 0.03, 0.03, 0.45, "metal_dark", seg=6)
-    b.cyl((0.8, 2.2, 0.49), 0.16, 0.16, 0.05, "black", seg=10)
+    b.cyl((-1.0, 2.6, 0.04), 0.03, 0.03, 0.45, "metal_dark", seg=6)
+    b.cyl((-1.0, 2.6, 0.49), 0.16, 0.16, 0.05, "black", seg=10)
     txt_front(b, "営業中", 0.09, "red_paint", 0.85, 0.59, 1.2)     # 'open' tag, a lie
     b.box(0.6, 1.1, 0.6, 0.62, 1.1, 1.3, "sign_white")
     return finish_mod("shop_tobacco", c, root, b, [
@@ -580,6 +580,18 @@ def p_puddles(b):
     pass
 
 
+def p_clutter(b):
+    # A-frame menu board, a stack of bottle crates, a potted plant
+    for s in (-1, 1):
+        b.boxc((-0.5, s * 0.12, 0.45), (0.5, 0.03, 0.9), "sign_white", rot=(s * 12, 0, 0))
+    txt_front(b, "本\n日", 0.13, "black", -0.5, -0.24, 0.55)
+    for k in range(3):
+        b.box(0.0, 0.45, -0.18, 0.18, k * 0.28, k * 0.28 + 0.26, "black")
+        b.box(0.03, 0.42, -0.15, 0.15, k * 0.28 + 0.26, k * 0.28 + 0.27, "metal_dark")
+    b.cyl((0.75, 0.0, 0.0), 0.16, 0.2, 0.32, "concrete", seg=8)
+    b.sphere((0.75, 0.0, 0.55), 0.28, "wood_black", seg=7, rings=5, scale=(1, 1, 0.9))
+
+
 def p_torii(b):
     for x in (-1.4, 1.4):
         b.cyl((x, 0, 0), 0.24, 0.24, 0.3, "black", seg=10)
@@ -610,7 +622,7 @@ def build_all():
     prop("lantern_red", "prop", p_lantern_red, 0.4, 0.4, 0.75, [("ATTACH_hook", (0, -0.2, 0), dict(type="hang_from"))])
     prop("lantern_paper", "prop", p_lantern_paper, 0.5, 0.5, 1.0, [("ATTACH_hook", (0, 0, 0), dict(type="hang_from"))])
     prop("sign_vertical_snack", "prop", lambda b: sign_vertical(b, "sign_white", "スナック", "black"), 0.12, 0.75, 1.9,
-         [("ATTACH_wall", (0, 0, 0), dict(type="facade", note="origin = top of the wall bracket; sign projects -Y"))])
+         [("ATTACH_wall", (0, 0, 0), dict(type="facade", note="origin = top of the wall bracket; sign projects toward the street"))])
     prop("sign_vertical_red", "prop", lambda b: sign_vertical(b, "red_paint", "酒処", "ink_white", h=1.5, w=0.5), 0.12, 0.65, 1.5,
          [("ATTACH_wall", (0, 0, 0), dict(type="facade"))])
     prop("sign_vertical_lit", "prop", lambda b: sign_vertical(b, "paper_glow", "旅館", "black", h=1.4, w=0.5), 0.12, 0.65, 1.4,
@@ -627,6 +639,7 @@ def build_all():
          [("DOOR_main", (0, 0, 0), dict(width=0.8, height=1.9, note="hiding is possible but you are visible through glass"))])
     prop("bicycle", "prop", p_bicycle, 0.6, 1.75, 1.1)
     prop("trash_pile", "prop", p_trash, 1.8, 1.2, 0.8)
+    prop("street_clutter", "prop", p_clutter, 1.3, 0.4, 0.95)
     prop("umbrella_dropped", "prop", p_umbrella, 1.0, 1.0, 0.5)
     prop("torii", "prop", p_torii, 5.0, 0.5, 4.1, [("DOOR_pass", (0, 0, 0), dict(width=2.6, height=3.0))])
     prop("stone_lantern", "prop", p_stone_lantern, 0.72, 0.72, 1.7)

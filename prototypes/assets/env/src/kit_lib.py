@@ -163,7 +163,7 @@ def build_materials():
     make_mat("metal", 0.30, (0.25, 0.6), metal=0.6, var=0.35, seed=51)
     make_mat("metal_dark", 0.10, (0.3, 0.6), metal=0.5, var=0.3, seed=55)
     make_mat("glass", 0.02, (0.03, 0.18), var=0.2, streak=True, seed=61)
-    make_mat("asphalt", 0.07, (0.04, 0.55), var=0.35, streak=False, seed=71)
+    make_mat("asphalt", 0.07, (0.03, 0.43), var=0.4, streak=False, seed=71)
     make_mat("floor_tile", 0.22, (0.35, 0.7), var=0.3, streak=False, seed=81)
     make_mat("cloth_black", 0.04, (0.8, 0.95), var=0.2, seed=91)
     make_mat("ink_white", 0.75, (0.6, 0.8), var=0.15, streak=False, seed=95)
@@ -174,11 +174,11 @@ def build_materials():
     make_mat("cardboard", 0.28, (0.6, 0.95), var=0.4, streak=False, seed=135)
     make_mat("red_paint", RED, (0.25, 0.6), var=0.35, seed=141)
     make_mat("red_lantern", (0.62, 0.05, 0.04), (0.5, 0.7), var=0.2, streak=False,
-             emit=(0.9, 0.08, 0.05), emit_strength=3.0, seed=151)
+             emit=(0.9, 0.08, 0.05), emit_strength=1.2, seed=151)
     make_mat("paper_glow", 0.82, (0.6, 0.8), var=0.15, streak=False,
-             emit=(0.85, 0.85, 0.82), emit_strength=2.0, seed=161)
+             emit=(0.85, 0.85, 0.82), emit_strength=1.2, seed=161)
     make_mat("vend_glow", 0.8, (0.1, 0.2), var=0.1, streak=False,
-             emit=(0.9, 0.9, 0.9), emit_strength=2.5, seed=171)
+             emit=(0.9, 0.9, 0.9), emit_strength=1.5, seed=171)
     # puddle decal: alpha blob, black mirror
     n = TEX_N
     a = fft_noise(n, 2.2, seed=181)

@@ -71,7 +71,7 @@ def build_street():
                     sn = sign_cycle[si % len(sign_cycle)]; si += 1
                     inst(sn, Mw @ Matrix.Translation(m.location), c, "_%d" % si)
             for m in markers(name, "LIGHT_lantern"):
-                light(c, "L_lantern_%s%d" % (side, i), "POINT", Mw @ m.location, 25, (1.0, 0.12, 0.08), 0.18)
+                light(c, "L_lantern_%s%d" % (side, i), "POINT", Mw @ m.location, 25, (1.0, 0.12, 0.08), 0.18).data.use_shadow = False
             for m in markers(name, "ATTACH_wire"):
                 attach_world.append((side, Mw @ m.location))
             y += w
@@ -97,9 +97,9 @@ def build_street():
     st.finish(c)
     for k, x in enumerate((-1.0, 1.0)):
         inst("lantern_paper", Matrix.Translation((x * 1.4, 43.4, 2.9)), c, "_%d" % k)
-        light(c, "L_paper_%d" % k, "POINT", (x * 1.4, 43.4, 2.4), 12, (1.0, 0.95, 0.85), 0.2)
+        light(c, "L_paper_%d" % k, "POINT", (x * 1.4, 43.4, 2.4), 12, (1.0, 0.95, 0.85), 0.2).data.use_shadow = False
     # poles + wires
-    poles = [("L", 8.0), ("R", 18.5), ("L", 29.0), ("R", 39.5)]
+    poles = [("L", 12.6), ("R", 18.5), ("L", 29.0), ("R", 39.5)]
     pole_pts = []
     for i, (side, yy) in enumerate(poles):
         x = -HALF + 0.35 if side == "L" else HALF - 0.35
@@ -107,7 +107,7 @@ def build_street():
         inst("utility_pole", Mw, c, "_%d" % i)
         pole_pts.append([Mw @ Vector(p) for _, p in POLE_ATTACH])
         lamp = Mw @ Vector((0, -1.35, 5.7))
-        light(c, "L_polelamp_%d" % i, "SPOT", lamp, 300 if i in (1,) else 0, (0.92, 0.95, 1.0), 0.1, spot=80, blend=0.6)
+        light(c, "L_polelamp_%d" % i, "SPOT", lamp, 1500 if i in (0, 1) else 0, (0.92, 0.95, 1.0), 0.1, spot=80, blend=0.6)
     wb = Builder("S_wires")
     for a, b2 in zip(pole_pts, pole_pts[1:]):
         wires(wb, a, b2, sag=0.8, seg=12, t=0.022)
@@ -121,15 +121,19 @@ def build_street():
     def P(name, x, y, rz, tag):
         return inst(name, Matrix.Translation((x, y, 0)) @ Matrix.Rotation(math.radians(rz), 4, "Z"), c, tag)
     P("vending_machine_red", HALF - 0.8, 21.2, -90, "_a")
-    light(c, "L_vend_a", "AREA", (HALF - 1.15, 21.2, 1.35), 40, (1, 1, 1), 0.7, rot=(0, -90, 0))
-    P("vending_machine", -HALF + 0.8, 11.0, 90, "_b")
-    light(c, "L_vend_b", "AREA", (-HALF + 1.15, 11.0, 1.35), 25, (0.95, 0.97, 1), 0.7, rot=(0, 90, 0))
+    light(c, "L_vend_a", "AREA", (HALF - 1.15, 21.2, 1.35), 40, (1, 1, 1), 0.7, rot=(0, -90, 0)).data.use_shadow = False
+    P("vending_machine", -HALF + 0.8, 15.0, 90, "_b")
+    light(c, "L_vend_b", "AREA", (-HALF + 1.15, 15.0, 1.35), 25, (0.95, 0.97, 1), 0.7, rot=(0, 90, 0)).data.use_shadow = False
     P("phone_booth", -HALF + 1.0, 24.5, 90, "_a")
     P("bicycle", HALF - 0.45, 9.6, 8, "_a")
     P("bicycle", -HALF + 0.4, 31.0, -12, "_b")
     P("trash_pile", -HALF + 0.65, 3.0, 90, "_a")
     P("trash_pile", HALF - 0.6, 15.0, -90, "_b")
     P("umbrella_dropped", 0.4, 13.5, 30, "_a")
+    P("street_clutter", -HALF + 0.3, 6.3, 90, "_a")
+    P("street_clutter", HALF - 0.3, 24.0, -90, "_b")
+    P("street_clutter", -HALF + 0.3, 34.0, 90, "_c")
+    P("street_clutter", HALF - 0.3, 3.0, -90, "_d")
     for k, (x, y, rz) in enumerate(((0.2, 6.0, 0), (-0.8, 16.5, 40), (0.6, 26.0, -20), (-0.3, 35.0, 70), (1.2, 2.0, 10))):
         for ch in KIT["puddle_decals"]["root"].children:
             o = bpy.data.objects.new("S_puddle_%d_%s" % (k, ch.name), ch.data)
@@ -138,7 +142,7 @@ def build_street():
     return c
 
 
-def build_rain(cam_loc, n=7000, depth=26.0):
+def build_rain(cam_loc, n=2600, depth=24.0):
     c = coll("STREET_RAIN")
     wipe_coll("STREET_RAIN")
     mat = bpy.data.materials.get("rain") or bpy.data.materials.new("rain")
@@ -153,8 +157,8 @@ def build_rain(cam_loc, n=7000, depth=26.0):
     _sock(bs, "Base Color").default_value = (0.8, 0.8, 0.8, 1)
     _sock(bs, "Roughness").default_value = 0.2
     _sock(bs, "Emission Color").default_value = (0.7, 0.7, 0.72, 1)
-    _sock(bs, "Emission Strength").default_value = 0.25
-    _sock(bs, "Alpha").default_value = 0.35
+    _sock(bs, "Emission Strength").default_value = 0.06
+    _sock(bs, "Alpha").default_value = 0.2
     try:
         mat.surface_render_method = "BLENDED"
     except Exception:
@@ -164,11 +168,11 @@ def build_rain(cam_loc, n=7000, depth=26.0):
     bm = bmesh.new()
     tilt = Vector((0.05, 0.03, -1)).normalized()
     for i in range(n):
-        y = cam_loc[1] + 0.6 + rnd.random() ** 1.6 * depth
+        y = cam_loc[1] + 2.5 + rnd.random() ** 1.3 * depth
         x = (rnd.random() - 0.5) * STREET_W * 1.05
-        z = rnd.random() * 9.0
-        L = rnd.uniform(0.25, 0.55)
-        w = 0.004
+        z = rnd.random() * 8.0
+        L = rnd.uniform(0.2, 0.45)
+        w = 0.0025
         p = Vector((x, y, z))
         q = p + tilt * L
         side = Vector((w, 0, 0))
@@ -178,6 +182,7 @@ def build_rain(cam_loc, n=7000, depth=26.0):
     bm.to_mesh(me); bm.free()
     me.materials.append(mat)
     ob = bpy.data.objects.new("S_rain", me)
+    ob.visible_shadow = False
     c.objects.link(ob)
     return ob
 
@@ -219,14 +224,10 @@ def setup_render(s):
     nt.nodes.clear()
     out = nt.nodes.new("ShaderNodeOutputWorld")
     bg = nt.nodes.new("ShaderNodeBackground")
-    bg.inputs[0].default_value = (0.012, 0.012, 0.013, 1)
+    bg.inputs[0].default_value = (0.05, 0.05, 0.052, 1)
     bg.inputs[1].default_value = 1.0
-    vol = nt.nodes.new("ShaderNodeVolumePrincipled")
-    _sock(vol, "Color").default_value = (0.75, 0.75, 0.75, 1)
-    _sock(vol, "Density").default_value = 0.035
-    _sock(vol, "Anisotropy").default_value = 0.35
     nt.links.new(bg.outputs[0], _sock(out, "Surface"))
-    nt.links.new(_out(vol, "Volume"), _sock(out, "Volume"))
+    build_fog()
     s.world = w
     return w
 
@@ -237,7 +238,7 @@ def setup_lights_cams(s):
     for o in list(c.objects):
         bpy.data.objects.remove(o, do_unlink=True)
     # faint moonlight for silhouettes, through the fog
-    light(c, "L_moon", "SUN", (0, 0, 20), 0.06, (0.9, 0.93, 1.0), rot=(55, 0, 160))
+    light(c, "L_moon", "SUN", (0, 0, 20), 0.6, (0.9, 0.93, 1.0), rot=(55, 0, 160))
     cams = {}
     def cam(name, loc, look_at, lens=20):
         cd = bpy.data.cameras.new(name)
@@ -250,14 +251,42 @@ def setup_lights_cams(s):
         o.rotation_euler = d.to_track_quat("-Z", "Y").to_euler()
         c.objects.link(o)
         # flashlight: spot parented to the camera, offset low-right like a held torch
-        fl = light(c, name + "_torch", "SPOT", (0.25, -0.25, 0.1), 900, (1.0, 0.98, 0.95), 0.03, spot=38, blend=0.45)
+        fl = light(c, name + "_torch", "SPOT", (0.18, -0.2, 0.05), 900, (1.0, 0.98, 0.95), 0.03, spot=32, blend=0.45)
         fl.parent = o
-        fl.rotation_euler = (math.radians(-1.5), math.radians(2.0), 0)
+        fl.rotation_euler = (math.radians(-1), math.radians(4), 0)
         cams[name] = o
         return o
     cam("CAM_street", (0.6, -2.0, 1.65), (-0.3, 30.0, 2.4), 18)
     cam("CAM_izakaya", (1.3, 4.6, 1.6), (-2.5, 8.2, 1.8), 20)
-    cam("CAM_hide", (-4.1, 11.65, 0.7), (2.0, 11.0, 0.55), 18)
-    cam("CAM_wires", (1.2, 19.0, 1.5), (0.0, 27.0, 5.5), 16)
+    cam("CAM_hide", (-6.75, 7.9, 1.0), (-0.5, 8.2, 1.25), 16)   # crouched behind the izakaya counter (HIDE_counter)
+    cam("CAM_wires", (-0.8, 17.0, 1.4), (0.8, 26.0, 5.0), 16)
     s.camera = cams["CAM_street"]
     return cams
+
+
+def build_fog(density=0.05):
+    """EEVEE world volume did not scatter lights here (Blender 5.3), so fog is a domain box."""
+    c = coll("STREET_FOG")
+    wipe_coll("STREET_FOG")
+    fm = bpy.data.materials.get("fog") or bpy.data.materials.new("fog")
+    try:
+        fm.use_nodes = True
+    except Exception:
+        pass
+    fn = fm.node_tree
+    fn.nodes.clear()
+    o_ = fn.nodes.new("ShaderNodeOutputMaterial")
+    v = fn.nodes.new("ShaderNodeVolumePrincipled")
+    _sock(v, "Color").default_value = (0.8, 0.8, 0.8, 1)
+    _sock(v, "Density").default_value = density
+    _sock(v, "Anisotropy").default_value = 0.4
+    fn.links.new(_out(v, "Volume"), _sock(o_, "Volume"))
+    me = bpy.data.meshes.new("S_fog")
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=1, matrix=T((0, 25, 9), (0, 0, 0), (40, 80, 20)))
+    bm.to_mesh(me); bm.free()
+    me.materials.append(fm)
+    fo = bpy.data.objects.new("S_fog", me)
+    fo.display_type = "BOUNDS"
+    c.objects.link(fo)
+    return fo

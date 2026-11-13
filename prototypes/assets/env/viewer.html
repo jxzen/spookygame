@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Town Kit Viewer</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0b0b0c; color: #ccc; font: 12px/1.4 system-ui, sans-serif; overflow: hidden; }
+  #hud { position: fixed; left: 10px; top: 8px; text-shadow: 0 1px 2px #000; }
+  #hud b { color: #c4161c; }
+</style>
+</head>
+<body>
+<div id="hud">ENV-01 kit viewer · <span id="status">loading…</span><br>?m=shop_izakaya (any module name in kit.json)</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const name = params.get("m") || "shop_izakaya";
+const status = document.getElementById("status");
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x2a2a2c);
+scene.fog = new THREE.FogExp2(0x2a2a2c, 0.06);
+const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.05, 200);
+scene.add(new THREE.HemisphereLight(0x8a8a90, 0x101010, 0.35));
+const moon = new THREE.DirectionalLight(0xdfe4ff, 0.35); moon.position.set(-4, 10, 6); scene.add(moon);
+// flashlight from the camera
+const torch = new THREE.SpotLight(0xfff6ee, 3.0, 25, 0.5, 0.45, 1.6);
+torch.castShadow = true; torch.shadow.mapSize.set(1024, 1024);
+camera.add(torch); camera.add(torch.target); torch.position.set(0.2, -0.2, 0); torch.target.position.set(0, -0.3, -5);
+scene.add(camera);
+// wet ground
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshStandardMaterial({ color: 0x111112, roughness: 0.25, metalness: 0.1 }));
+ground.rotation.x = -Math.PI / 2; ground.position.y = -0.002; ground.receiveShadow = true; scene.add(ground);
+
+new THREE.GLTFLoader().load(name + ".glb", (gltf) => {
+  const root = gltf.scene;
+  let tris = 0, markers = [];
+  root.traverse((o) => {
+    if (o.isMesh) {
+      o.castShadow = o.receiveShadow = true;
+      tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3;
+    } else if (/^(DOOR|HIDE|ATTACH|LIGHT)_/.test(o.name)) {
+      markers.push(o.name);
+      const red = o.name.startsWith("HIDE");
+      const m = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), new THREE.MeshBasicMaterial({ color: red ? 0xc4161c : 0xffffff }));
+      o.add(m);
+      if (o.name.startsWith("LIGHT_lantern")) { const L = new THREE.PointLight(0xff2a1a, 2.0, 6, 2); o.add(L); }
+    }
+  });
+  scene.add(root);
+  const box = new THREE.Box3().setFromObject(root), size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
+  const d = Math.max(size.x, size.y) * 1.1 + 2;
+  camera.position.set(c.x + d * 0.35, Math.min(1.7, size.y * 0.6), box.max.z + d * 0.8);
+  camera.lookAt(c.x, Math.min(1.6, c.y), c.z);
+  status.innerHTML = "<b>" + name + "</b> loaded · " + Math.round(tris) + " tris · " + markers.length + " markers (" + markers.join(", ") + ")";
+  document.title = "LOADED " + name;
+  console.log("GLB_LOADED", name, Math.round(tris), markers.join(","));
+}, undefined, (e) => { status.textContent = "load error: " + e; console.log("GLB_ERROR", e && e.message); });
+
+addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+(function loop() { requestAnimationFrame(loop); renderer.render(scene, camera); })();
+</script>
+</body>
+</html>
