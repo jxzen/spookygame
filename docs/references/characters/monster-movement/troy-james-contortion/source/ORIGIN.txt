@@ -1,0 +1,6 @@
+clip.mp4        https://www.youtube.com/watch?v=bkfsEgm_N58  "Contortionist Twisty Troy James SHOCKED The Judges on America's Got Talent 2018" (uploader: bruhify pro max ultra; re-upload of NBC/AGT broadcast, uploaded 2018-12-09), 480p, retrieved 2026-11-13. Segment 0:40-1:20 of the upload, re-encoded.
+loop.mp4        silent loop, upload 0:56.6-1:00.9 (4.3 s), 360p (derived)
+strip.jpg       6 frames from loop.mp4, one every 0.72 s (derived)
+contact.jpg     contact sheet of the full upload, 1 frame / 5 s (derived)
+clip.info.json  yt-dlp metadata
+Licence: (c) NBC / Fremantle / the performer. Standard YouTube licence, unofficial upload. Internal motion study only; never shipped, never traced.

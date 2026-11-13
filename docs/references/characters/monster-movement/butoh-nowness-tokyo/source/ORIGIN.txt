@@ -1,0 +1,4 @@
+clip.mp4        https://www.youtube.com/watch?v=9f6R8Ry9qVo  "Tokyo Butoh artists perform the Japanese dance of darkness on a trance-like passage between worlds" (NOWNESS official channel, uploaded 2025-12-15), 480p, retrieved 2026-11-13. Segment 0:24-1:00 of the upload, re-encoded.
+contact.jpg     contact sheet of the full upload, 1 frame / 8 s (derived)
+clip.info.json  yt-dlp metadata
+Licence: (c) NOWNESS / the performers. Standard YouTube licence. Internal study only; never shipped.

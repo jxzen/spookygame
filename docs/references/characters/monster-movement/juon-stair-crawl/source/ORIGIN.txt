@@ -1,0 +1,6 @@
+clip.mp4        https://www.youtube.com/watch?v=xbWH5MgU9J4  "JU-ON: THE GRUDGE - STAIR SCENE (HD)" (uploader: Lasse Madsen; fan upload, uploaded 2017-11-06), 480p, retrieved 2026-11-13. Segment 1:00-2:10 of the upload, re-encoded.
+loop.mp4        silent loop, upload 1:42.0-1:49.0 (7.0 s), 360p (derived)
+strip.jpg       6 frames from loop.mp4, one every 1.17 s (derived)
+contact.jpg     contact sheet of the full upload, 1 frame / 4 s (derived)
+clip.info.json  yt-dlp metadata
+Licence: (c) the film's producers (Ju-on: The Grudge, 2002, dir. Takashi Shimizu). Standard YouTube licence, unofficial upload. Internal motion study only; never shipped, never traced.

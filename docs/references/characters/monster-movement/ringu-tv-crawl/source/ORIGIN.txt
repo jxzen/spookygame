@@ -1,0 +1,4 @@
+clip.mp4        https://www.youtube.com/watch?v=G3kiwpnO7RU  "Ringu (JAP) | Tv scene (ending)" (uploader: SpookyTube; unofficial upload, 2016-09-25), 480p, retrieved 2026-11-13. Segment 1:35-2:10 of the upload, re-encoded.
+contact.jpg     contact sheet of the full upload, 1 frame / 4 s (derived)
+clip.info.json  yt-dlp metadata
+Licence: (c) the film's producers (Ringu, 1998, dir. Hideo Nakata). Internal study only; never shipped.

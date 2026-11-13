@@ -1,0 +1,6 @@
+clip.mp4        https://www.youtube.com/watch?v=0hoK3RFvxwM  "Bunraku puppet theatre" (channel: bunkachannel, Agency for Cultural Affairs, Japan; uploaded 2017-02-16), 480p (640x480), retrieved 2026-11-13. Segment 2:20-2:55 of the upload, re-encoded.
+loop.mp4        silent loop, upload 2:30.0-2:37.0 (7.0 s), 360p (derived)
+strip.jpg       6 frames from loop.mp4, one every 1.17 s (derived)
+contact.jpg     contact sheet of the full upload, 1 frame / 7 s (derived)
+clip.info.json  yt-dlp metadata
+Licence: (c) Agency for Cultural Affairs / National Bunraku Theatre. Standard YouTube licence. Internal motion study only; never shipped, never traced.

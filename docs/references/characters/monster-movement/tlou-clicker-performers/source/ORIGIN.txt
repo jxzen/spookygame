@@ -1,0 +1,4 @@
+clip.mp4        https://www.youtube.com/watch?v=NLmN0UPXZ8I  "Creating the Clickers | The Last of Us | Max" (HBO Max official channel, uploaded 2023-06-13), 480p, retrieved 2026-11-13. Segment 2:00-2:40 of the upload, re-encoded.
+contact.jpg     contact sheet of the full upload, 1 frame / 6 s (derived)
+clip.info.json  yt-dlp metadata
+Licence: (c) HBO. Standard YouTube licence. Internal study only; never shipped.
