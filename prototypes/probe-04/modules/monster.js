@@ -81,18 +81,22 @@
   function camForward() { const f = new V3(); G.camera.getWorldDirection(f); f.y = 0; if (f.lengthSq() < 1e-4) f.set(0, 0, -1); return f.normalize(); }
 
   /* ---------------- nav: A* over G.world.nav, else direct steering ---------------- */
-  let navCache = null, navSrc = null;
+  let navCache = null, navSrc = null, navEdges = -1;
   function nav() {
     const n = world().nav; if (!n) return null;
-    if (n === navSrc) return navCache;
-    navSrc = n; navCache = null;
+    const eLen = n.edges ? n.edges.length : 0;   // integration: the level appends edges at runtime (station gate)
+    if (n === navSrc && eLen === navEdges) return navCache;
+    navSrc = n; navEdges = eLen; navCache = null;
     try {
       if (typeof n.path === 'function') { navCache = { fn: n.path.bind(n) }; return navCache; }
       const list = Array.isArray(n) ? n : n.nodes; if (!Array.isArray(list) || !list.length) return null;
       const pts = list.map(o => { const p = o.pos || o.p || o; return new V3(+p.x || 0, 0, +(p.z != null ? p.z : p.y) || 0); });
       const adj = pts.map(() => []);
       list.forEach((o, i) => { const L = o.links || o.adj || o.neighbors || o.n || []; L.forEach(j => { if (j >= 0 && j < pts.length && j !== i) { adj[i].push(j); adj[j].push(i); } }); });
-      (n.edges || n.links || []).forEach(e => { if (Array.isArray(e) && e.length >= 2) { adj[e[0]] && adj[e[0]].push(e[1]); adj[e[1]] && adj[e[1]].push(e[0]); } });
+      // integration: level.js writes edges as node ids ('pl-gate'), not indices; translate both forms
+      const idIx = {}; list.forEach((o, i) => { if (o && o.id != null) idIx[o.id] = i; });
+      const ix = v => typeof v === 'number' ? v : idIx[v];
+      (n.edges || n.links || []).forEach(e => { if (Array.isArray(e) && e.length >= 2) { const a = ix(e[0]), b = ix(e[1]); if (adj[a] && adj[b] && a !== b) { adj[a].push(b); adj[b].push(a); } } });
       navCache = { pts, adj };
     } catch (e) { console.warn('[monster] nav unreadable, steering directly', e); navCache = null; }
     return navCache;

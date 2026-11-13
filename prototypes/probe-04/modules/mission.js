@@ -76,7 +76,9 @@
     const drops = [0, 1, 2].map(i => { const w = wpt('drop' + (i + 1), i); return { pos: (w && w.pos) || fb[i], fallback: !(w && w.pos) }; });
     const bellV = toVec(W.bell);
     const bell = { pos: bellV || at(54, 0), fallback: !bellV };
-    const pw = wpt('platform') || wpt('station');
+    // integration: level.js publishes the platform as G.world.station.platform (a Vector3)
+    const stP = W.station && toVec(W.station.platform);
+    const pw = stP ? { pos: stP, yaw: null } : (wpt('platform') || wpt('station'));
     const platform = { pos: (pw && pw.pos) || at(62, 12), yaw: pw ? pw.yaw : null, given: !!pw };
     P = { spawn, drops, bell, platform };
   }
@@ -382,7 +384,11 @@
   function setupPlatform(anchor, stopped, yawIn) {
     const W = G.world || {}; TR.anchor = anchor.clone();
     let dir, P0, faceYaw;
-    const track = W.track || (W.points && W.points.track);
+    // integration: level.js publishes the track as station.{trackZ, trackY, trackDir} along the platform
+    const S0 = W.station, stTrack = S0 && S0.platform && S0.trackZ != null && S0.trackDir
+      ? (() => { const d = toVec(S0.trackDir).normalize(), c = new V(S0.platform.x, S0.trackY || 0, S0.trackZ); return { a: c.clone().addScaledVector(d, -60), b: c.clone().addScaledVector(d, 60), y: S0.trackY || 0 }; })()
+      : null;
+    const track = W.track || (W.points && W.points.track) || stTrack;
     if (track && track.a && track.b) { const a = toVec(track.a), b = toVec(track.b); dir = b.clone().sub(a).setY(0).normalize();
       const t = anchor.clone().sub(a).dot(dir); P0 = a.clone().addScaledVector(dir, t); }
     else { const yaw = yawIn != null ? yawIn : (P.platform.yaw != null ? P.platform.yaw : (G.player ? G.player.yaw || 0 : 0)); const f = fwd(yaw); dir = rgt(yaw); P0 = anchor.clone().addScaledVector(f, 4.2); }

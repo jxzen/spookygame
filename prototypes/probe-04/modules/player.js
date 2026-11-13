@@ -49,7 +49,7 @@
   }
   function updateHUD() {
     if (!hud) return;
-    hud.st.hidden = !S.playing;
+    hud.st.hidden = !S.playing || (G.mission && (G.mission.phase === "title" || G.mission.phase === "ending")); // integration: no HUD over the title or the ending
     hud.pips.forEach((p, i) => { p.style.background = i < P.health ? 'var(--red)' : 'transparent'; });
     hud.light.style.width = P.battery.toFixed(0) + '%';
     hud.light.style.background = P.battery < 20 ? 'var(--red)' : 'var(--paper)';
@@ -97,9 +97,12 @@
   function tryMove(dx, dz) {
     if (!dx && !dz) return;
     const x = P.pos.x, z = P.pos.z;
-    if (walkable(x + dx, z + dz)) { P.pos.x += dx; P.pos.z += dz; return; }
-    if (dx && walkable(x + dx, z)) { P.pos.x += dx; return; }
-    if (dz && walkable(x, z + dz)) { P.pos.z += dz; }
+    if (walkable(x + dx, z + dz)) { P.pos.x += dx; P.pos.z += dz; }
+    else if (dx && walkable(x + dx, z)) { P.pos.x += dx; }
+    else if (dz && walkable(x, z + dz)) { P.pos.z += dz; }
+    // integration: follow the town's floor (shrine stairs 0 -> 6 m); the castle keeps its own y, so skip during a shift
+    const sh = G.shift, w = G.world;
+    if (!(sh && sh.active) && w && typeof w.heightAt === 'function') { const h = w.heightAt(P.pos.x, P.pos.z); if (isFinite(h)) P.pos.y = h; }
   }
 
   /* ---------- flashlight ---------- */
@@ -271,6 +274,8 @@
     if (hud && hud.hurt) hud.hurt.style.opacity = 0;
     place(d);
   });
+  // integration: the noppera-bo glimpse ends with "the light went out" (yokai emits {lightOut: seconds})
+  G.on('yokai', d => { if (d && d.lightOut > 0 && P.lightOn) { P.lightOn = false; setTimeout(() => { if (!S.hide) P.lightOn = true; }, d.lightOut * 1000); } });
   G.on('teleport', d => { if (S.hide) { S.hide = null; P.hidden = null; G.emit('player-unhide'); } place(d); });
   G.on('start', () => { S.playing = true; });
   G.on('begin', () => {
