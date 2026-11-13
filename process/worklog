@@ -20,3 +20,4 @@ W7 · ENV-01 · environment kit · first-of-kind y · library: environment/japan
 W8 · SHIFT-01 · mechanics + vfx (world shift) · first-of-kind y · library: vfx/shift-* (fetched: P.T., Control, Antichamber; Inception/Infinity Castle strips) · rounds 0 · verdict pending · lab https://claude.ai/artifact/2hLU64yrdqzD8puVEM1aUu
 W9 · LEVEL-01 · level layout + encounter design · first-of-kind y · library: level-layout/* (fetched: SH2R, Amnesia, RE7, Alien Isolation, P.T., Siren openings) · rounds 0 · verdict pending
 W10 · FX-01 · visual effects + screen effects · first-of-kind y · library: vfx/horror-fx (fetched: Amnesia TDD/Bunker, SH2 2024, Blade Runner, Stray Dog trailer, UE height fog docs) · rounds 0 · verdict pending
+D6 · 2026-11-12 · Director decisions after wave 1 recorded in docs/macro-design.md; all other open questions default to agent recommendations.

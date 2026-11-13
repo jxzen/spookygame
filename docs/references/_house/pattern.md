@@ -71,3 +71,15 @@ Each entry: name, problem, rule, reason, good example, bad example. The director
 - Rule: the dimension shift draws on three readings: the Inception city fold (space bends over the player), the Infinity Castle (endless Japanese interiors that reconfigure: rooms rotate and stack, floors become walls), and Backrooms (liminal, endless, humming rooms that feel wrong). It stays rare (director, t3).
 - Reason: director, mid-probe-02 message: "for the world-shifting mechanic. use references of the inception movie, demon slayer newest movie w/ castle, backrooms movie. use silent hill graphics to make more spooky. have setting be in japan."
 - Evidence: Inception clips fetched (vfx/inception-city-fold, vfx/inception-final-kick); Infinity Castle and Backrooms clips fetching 2026-11-12.
+
+## H11. Hurt, don't end
+- Rule: the first grab damages the player, then the monster backs away; the threat costs health, it does not reset the run.
+- Reason: director: "first grab should damage you and then the monster backs away."
+
+## H12. Horror first, spy second; the escape is the spy's moment
+- Rule: horror carries the mission; the spy identity surfaces in the title and the ending. The mission ends with an escape aboard a shinkansen, scored as a spy-thriller cue.
+- Reason: director: "end with escape on a japanese shinkansen bullet train with good spy music." and "the spy theme may not be as emphasized as the horror theme."
+
+## H13. Near-blinding static
+- Rule: static at full fear stays near-blinding (accessibility toggles still reduce it).
+- Reason: director: "keep it near-blinding."

@@ -87,3 +87,15 @@ What changes:
 - **Jam theme "director's cut"**: make it extra epic.
 
 Picked readings: title sequence = Skyfall main titles; environment = Spirited Away; music = Paul's Dream (Dune).
+
+## Decisions after wave 1 (2026-11-12, director's words verbatim)
+
+> for blocking decision questions: 1 and 2 go with recommenmnded, 3. first grab should damage you and then the monster backs away. 4. end with escape on a japanese shinkansen bullet train with good spy music. 5. the spy theme may not be as emphasized as the horror theme. 6. keep it near-blinding. default the other decisions.
+
+1. Monster: Kagenui, the 1.2 m crouched onryo (docs/design/monster-design.md).
+2. World shift: about 90 s, three effects (hallway stretch, room fold, castle grid), the unseen koto player is the controlling power, triggered when the player rings the shrine bell.
+3. First grab: damages the player, then the monster backs away (no instant death).
+4. Ending: escape aboard a shinkansen bullet train, scored with spy-thriller music.
+5. Spy theme stays secondary to horror.
+6. Static at full fear stays near-blinding.
+Defaults accepted for all other open questions: each agent's recommendation in its report/design doc.
