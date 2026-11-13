@@ -63,7 +63,7 @@ def part(ob, allowed=None, rigid=None):
 # ---------------- skeleton landmarks ----------------
 L = {}
 for s, sx in (("L", 1), ("R", -1)):
-    out = 12 if s == "L" else 9          # left arm carries the case: a little wider
+    out = 15 if s == "L" else 13          # left arm carries the case: a little wider
     sh = Vector((sx * SH_X, 0.0, SH_Z))
     el = sh + Vector((sx * math.sin(out * D2R), 0.02, -math.cos(out * D2R))) * 0.32
     fwd = 12 if s == "L" else 22         # right forearm a bit forward (pistol)
@@ -101,9 +101,9 @@ coat_rings = [
     (COAT_HEM, 0.285 * FLARE, 0.235 * FLARE, 64, 0.02),
     (0.60, 0.268 * FLARE, 0.215 * FLARE, 50, 0.015),
     (0.76, 0.245, 0.19, 34, 0.01),
-    (0.94, 0.222, 0.163, 16, 0.0),
-    (1.09, 0.198, 0.145, 6, 0.0),
-    (1.20, 0.207, 0.148, 12, 0.0),
+    (0.94, 0.215, 0.16, 16, 0.0),
+    (1.09, 0.184, 0.14, 6, 0.0),
+    (1.20, 0.198, 0.146, 12, 0.0),
     (1.31, 0.226, 0.152, 34, 0.0),
     (1.40, 0.240, 0.150, 50, 0.0),
     (SH_Z - 0.03, 0.248, 0.142, 60, 0.004),
@@ -132,7 +132,7 @@ apply_solidify(coat, 0.012, offset=1.0)
 part(coat, TORSO + ["thigh.L", "thigh.R"])
 
 # belt
-belt_r = [(1.065, 0.203, 0.149, 4, 0.0), (1.115, 0.203, 0.147, 6, 0.0)]
+belt_r = [(1.065, 0.19, 0.143, 4, 0.0), (1.115, 0.19, 0.142, 6, 0.0)]
 belt = loft("belt", [coat_ring(r, 1.04) for r in belt_r], closed=False, mat=M["coat_dark"])
 part(belt, TORSO)
 part(box("buckle", (0.035, -0.158, 1.09), (0.05, 0.012, 0.05), M["metal"]), TORSO)

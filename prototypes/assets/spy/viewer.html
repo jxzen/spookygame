@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spy Asset Viewer</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0a0a0a; color: #ddd; font: 13px/1.4 system-ui, sans-serif; overflow: hidden; }
+  #hud { position: absolute; left: 12px; top: 10px; white-space: pre; pointer-events: none; }
+  #hud b { color: #e33; }
+  #keys { position: absolute; left: 12px; bottom: 10px; color: #888; }
+</style>
+</head>
+<body>
+<div id="hud">loading...</div>
+<div id="keys">1 idle · 2 walk · 3 title · R arms reach · URL hash #walk / #title / #idle</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script>
+const hud = document.getElementById('hud');
+const log = [];
+function say(s) { log.push(s); hud.innerHTML = log.join('\n'); console.log(s); }
+window.onerror = (m) => say('<b>ERROR</b> ' + m);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.shadowMap.enabled = true;
+renderer.autoClear = false;
+document.body.appendChild(renderer.domElement);
+
+// third-person stage
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0a0a);
+scene.fog = new THREE.Fog(0x0a0a0a, 6, 14);
+const cam = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.05, 50);
+cam.position.set(1.6, 1.35, 4.2); cam.lookAt(0, 1.0, 0);
+scene.add(new THREE.HemisphereLight(0x9a9a9a, 0x0a0a0a, 0.35));
+const key = new THREE.SpotLight(0xffffff, 2.2, 15, 0.5, 0.5, 1); key.position.set(-2, 4, 3); key.castShadow = true; key.target.position.set(0, 1, 0);
+scene.add(key, key.target);
+const rim = new THREE.SpotLight(0xff2020, 2.5, 12, 0.6, 0.6, 1); rim.position.set(2, 3, -3); rim.target.position.set(0, 1.4, 0); scene.add(rim, rim.target);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.5 }));
+floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+
+// viewmodel stage (rendered on top, inset at the right)
+const vmScene = new THREE.Scene();
+vmScene.add(new THREE.HemisphereLight(0x9a9a9a, 0x101010, 0.6));
+const vmKey = new THREE.PointLight(0xf3f0e8, 1.4, 3, 2); vmKey.position.set(0.3, 0.1, -0.2); vmScene.add(vmKey);
+const vmCam = new THREE.PerspectiveCamera(70, 16 / 9, 0.01, 10);
+vmScene.add(vmCam);
+
+const loader = new THREE.GLTFLoader();
+const clock = new THREE.Clock();
+let spyMixer, spyActions = {}, armsMixer, armsActions = {};
+let pending = 2;
+function done() { if (--pending === 0) say('VIEWER_OK'); }
+
+function stats(root) {
+  let tris = 0, skinned = 0, bones = 0;
+  root.traverse(o => {
+    if (o.isMesh) { const g = o.geometry; tris += (g.index ? g.index.count : g.attributes.position.count) / 3; if (o.isSkinnedMesh) { skinned++; bones = o.skeleton.bones.length; } o.castShadow = true; }
+  });
+  return { tris, skinned, bones };
+}
+function play(actions, name) {
+  for (const k in actions) actions[k].stop();
+  if (actions[name]) actions[name].reset().play();
+}
+
+loader.load('spy.glb', g => {
+  scene.add(g.scene);
+  const s = stats(g.scene);
+  spyMixer = new THREE.AnimationMixer(g.scene);
+  g.animations.forEach(c => spyActions[c.name] = spyMixer.clipAction(c));
+  const want = (location.hash || '#title').slice(1);
+  play(spyActions, want);
+  say('spy.glb  tris=' + s.tris + ' skinned=' + s.skinned + ' bones=' + s.bones + ' clips=[' + g.animations.map(c => c.name + ' ' + c.duration.toFixed(2) + 's').join(', ') + '] playing=' + want);
+  done();
+}, undefined, e => say('<b>ERROR</b> spy.glb ' + (e.message || e)));
+
+loader.load('fp-arms.glb', g => {
+  vmCam.add(g.scene);           // authored in camera space: camera at origin looking -Z
+  const s = stats(g.scene);
+  g.scene.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
+  armsMixer = new THREE.AnimationMixer(g.scene);
+  g.animations.forEach(c => armsActions[c.name] = armsMixer.clipAction(c));
+  play(armsActions, 'idle_sway');
+  say('fp-arms.glb  tris=' + s.tris + ' skinned=' + s.skinned + ' bones=' + s.bones + ' clips=[' + g.animations.map(c => c.name + ' ' + c.duration.toFixed(2) + 's').join(', ') + ']');
+  done();
+}, undefined, e => say('<b>ERROR</b> fp-arms.glb ' + (e.message || e)));
+
+addEventListener('keydown', e => {
+  if (e.key === '1') play(spyActions, 'idle');
+  if (e.key === '2') play(spyActions, 'walk');
+  if (e.key === '3') play(spyActions, 'title');
+  if (e.key === 'r' || e.key === 'R') { const a = armsActions.reach; if (a) { a.reset(); a.setLoop(THREE.LoopOnce); a.play(); } }
+});
+addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); });
+
+function frame() {
+  const dt = Math.min(clock.getDelta(), 0.05);
+  if (spyMixer) spyMixer.update(dt);
+  if (armsMixer) armsMixer.update(dt);
+  const W = innerWidth, H = innerHeight;
+  renderer.setViewport(0, 0, W, H); renderer.setScissorTest(false); renderer.clear();
+  renderer.render(scene, cam);
+  const w = Math.round(W * 0.38), h = Math.round(w * 9 / 16);
+  renderer.setScissorTest(true); renderer.setScissor(W - w - 10, 10, w, h); renderer.setViewport(W - w - 10, 10, w, h);
+  renderer.setClearColor(0x050505, 1); renderer.clear();
+  renderer.render(vmScene, vmCam);
+  renderer.setScissorTest(false);
+  requestAnimationFrame(frame);
+}
+frame();
+</script>
+</body>
+</html>
