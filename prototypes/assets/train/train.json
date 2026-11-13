@@ -1,0 +1,622 @@
+{
+ "about": "Generic bullet train (W2-TRAIN). three.js coordinates, metres, +Y up, train front toward -Z.",
+ "origin": "shinkansen root = nose tip of car_1_lead, track centreline, rail-top height (y=0)",
+ "nodes_note": "Every node carries translation only (no rotation/scale). Doors pivot at their centre.",
+ "tris": {
+  "shinkansen.glb": 20772,
+  "platform.glb": 2770
+ },
+ "cars": [
+  {
+   "node": "car_1_lead",
+   "kind": "lead",
+   "length_m": 27.0,
+   "z_front": -0.0,
+   "z_back": 27.0,
+   "nose_length_m": 10.5
+  },
+  {
+   "node": "car_2",
+   "kind": "mid",
+   "length_m": 25.0,
+   "z_front": 27.3,
+   "z_back": 52.3,
+   "nose_length_m": 0
+  },
+  {
+   "node": "car_3",
+   "kind": "mid",
+   "length_m": 25.0,
+   "z_front": 52.6,
+   "z_back": 77.6,
+   "nose_length_m": 0
+  },
+  {
+   "node": "car_4_tail",
+   "kind": "tail",
+   "length_m": 27.0,
+   "z_front": 77.9,
+   "z_back": 104.9,
+   "nose_length_m": 10.5
+  }
+ ],
+ "car_gap_m": 0.3,
+ "body_width_m": 3.36,
+ "roof_height_m": 3.68,
+ "floor_height_m": 1.3,
+ "doors": [
+  {
+   "node": "door_L_1",
+   "car": "car_1_lead",
+   "side": "L",
+   "centre": [
+    -1.694,
+    2.2,
+    12.0
+   ],
+   "size": [
+    0.024,
+    1.8,
+    1.0
+   ],
+   "open_offset": [
+    -0.05,
+    0.0,
+    1.05
+   ],
+   "real_opening": false
+  },
+  {
+   "node": "door_R_1",
+   "car": "car_1_lead",
+   "side": "R",
+   "centre": [
+    1.694,
+    2.2,
+    12.0
+   ],
+   "size": [
+    0.024,
+    1.8,
+    1.0
+   ],
+   "open_offset": [
+    0.05,
+    0.0,
+    1.05
+   ],
+   "real_opening": false
+  },
+  {
+   "node": "door_L_2",
+   "car": "car_1_lead",
+   "side": "L",
+   "centre": [
+    -1.694,
+    2.2,
+    25.4
+   ],
+   "size": [
+    0.024,
+    1.8,
+    1.0
+   ],
+   "open_offset": [
+    -0.05,
+    0.0,
+    -1.05
+   ],
+   "real_opening": false
+  },
+  {
+   "node": "door_R_2",
+   "car": "car_1_lead",
+   "side": "R",
+   "centre": [
+    1.694,
+    2.2,
+    25.4
+   ],
+   "size": [
+    0.024,
+    1.8,
+    1.0
+   ],
+   "open_offset": [
+    0.05,
+    0.0,
+    -1.05
+   ],
+   "real_opening": false
+  },
+  {
+   "node": "door_L_3",
+   "car": "car_2",
+   "side": "L",
+   "centre": [
+    -1.694,
+    2.2,
+    28.9
+   ],
+   "size": [
+    0.024,
+    1.8,
+    1.0
+   ],
+   "open_offset": [
+    -0.05,
+    0.0,
+    1.05
+   ],
+   "real_opening": true
+  },
+  {
+   "node": "door_R_3",
+   "car": "car_2",
+   "side": "R",
+   "centre": [
+    1.694,
+    2.2,
+    28.9
+   ],
+   "size": [
+    0.024,
+    1.8,
+    1.0
+   ],
+   "open_offset": [
+    0.05,
+    0.0,
+    1.05
+   ],
+   "real_opening": true
+  },
+  {
+   "node": "door_L_4",
+   "car": "car_2",
+   "side": "L",
+   "centre": [
+    -1.694,
+    2.2,
+    50.7
+   ],
+   "size": [
+    0.024,
+    1.8,
+    1.0
+   ],
+   "open_offset": [
+    -0.05,
+    0.0,
+    -1.05
+   ],
+   "real_opening": true
+  },
+  {
+   "node": "door_R_4",
+   "car": "car_2",
+   "side": "R",
+   "centre": [
+    1.694,
+    2.2,
+    50.7
+   ],
+   "size": [
+    0.024,
+    1.8,
+    1.0
+   ],
+   "open_offset": [
+    0.05,
+    0.0,
+    -1.05
+   ],
+   "real_opening": true
+  },
+  {
+   "node": "door_L_5",
+   "car": "car_3",
+   "side": "L",
+   "centre": [
+    -1.694,
+    2.2,
+    54.2
+   ],
+   "size": [
+    0.024,
+    1.8,
+    1.0
+   ],
+   "open_offset": [
+    -0.05,
+    0.0,
+    1.05
+   ],
+   "real_opening": false
+  },
+  {
+   "node": "door_R_5",
+   "car": "car_3",
+   "side": "R",
+   "centre": [
+    1.694,
+    2.2,
+    54.2
+   ],
+   "size": [
+    0.024,
+    1.8,
+    1.0
+   ],
+   "open_offset": [
+    0.05,
+    0.0,
+    1.05
+   ],
+   "real_opening": false
+  },
+  {
+   "node": "door_L_6",
+   "car": "car_3",
+   "side": "L",
+   "centre": [
+    -1.694,
+    2.2,
+    76.0
+   ],
+   "size": [
+    0.024,
+    1.8,
+    1.0
+   ],
+   "open_offset": [
+    -0.05,
+    0.0,
+    -1.05
+   ],
+   "real_opening": false
+  },
+  {
+   "node": "door_R_6",
+   "car": "car_3",
+   "side": "R",
+   "centre": [
+    1.694,
+    2.2,
+    76.0
+   ],
+   "size": [
+    0.024,
+    1.8,
+    1.0
+   ],
+   "open_offset": [
+    0.05,
+    0.0,
+    -1.05
+   ],
+   "real_opening": false
+  },
+  {
+   "node": "door_L_7",
+   "car": "car_4_tail",
+   "side": "L",
+   "centre": [
+    -1.694,
+    2.2,
+    79.5
+   ],
+   "size": [
+    0.024,
+    1.8,
+    1.0
+   ],
+   "open_offset": [
+    -0.05,
+    0.0,
+    1.05
+   ],
+   "real_opening": false
+  },
+  {
+   "node": "door_R_7",
+   "car": "car_4_tail",
+   "side": "R",
+   "centre": [
+    1.694,
+    2.2,
+    79.5
+   ],
+   "size": [
+    0.024,
+    1.8,
+    1.0
+   ],
+   "open_offset": [
+    0.05,
+    0.0,
+    1.05
+   ],
+   "real_opening": false
+  },
+  {
+   "node": "door_L_8",
+   "car": "car_4_tail",
+   "side": "L",
+   "centre": [
+    -1.694,
+    2.2,
+    92.9
+   ],
+   "size": [
+    0.024,
+    1.8,
+    1.0
+   ],
+   "open_offset": [
+    -0.05,
+    0.0,
+    -1.05
+   ],
+   "real_opening": false
+  },
+  {
+   "node": "door_R_8",
+   "car": "car_4_tail",
+   "side": "R",
+   "centre": [
+    1.694,
+    2.2,
+    92.9
+   ],
+   "size": [
+    0.024,
+    1.8,
+    1.0
+   ],
+   "open_offset": [
+    0.05,
+    0.0,
+    -1.05
+   ],
+   "real_opening": false
+  }
+ ],
+ "door_open": "Add open_offset to the door node position (ease 0.6-0.9 s). Only car_2 has real openings and an interior; other cars show body behind an open door.",
+ "interior": {
+  "car": "car_2",
+  "floor_y": 1.3,
+  "saloon_z_range": [
+   30.0,
+   49.6
+  ],
+  "aisle_x": [
+   -0.8,
+   0.05
+  ],
+  "camera_window_seat": {
+   "node": "CAM_interior_window",
+   "pos": [
+    -1.0,
+    2.5,
+    40.27
+   ],
+   "look_at": [
+    -6.0,
+    2.4,
+    39.27
+   ],
+   "note": "left (platform side) window seat, looking out and forward: the escape shot"
+  },
+  "camera_aisle": {
+   "node": "CAM_interior_aisle",
+   "pos": [
+    -0.38,
+    2.92,
+    49.0
+   ],
+   "look_at": [
+    -0.38,
+    2.6,
+    30.0
+   ]
+  },
+  "light_nodes": [
+   "LIGHT_interior_01",
+   "LIGHT_interior_02",
+   "LIGHT_interior_03",
+   "LIGHT_interior_04",
+   "LIGHT_interior_05",
+   "LIGHT_interior_06"
+  ],
+  "light_colour": "#ffe6c2 (warm grey)"
+ },
+ "platform": {
+  "file": "platform.glb",
+  "origin": "platform centre on the track centreline at rail-top height",
+  "length_m": 60.0,
+  "surface_y": 1.25,
+  "edge_line": [
+   [
+    -1.78,
+    1.25,
+    -30.0
+   ],
+   [
+    -1.78,
+    1.25,
+    30.0
+   ]
+  ],
+  "screen_door_line_x": -3.0,
+  "screen_door_height_m": 1.2,
+  "train_root_in_platform": [
+   0.0,
+   0.0,
+   -30.0
+  ],
+  "train_note": "Place the shinkansen root at train_root_in_platform (platform-local) and the car doors line up with the PSD gates. Train departs toward -Z.",
+  "psd_gates": [
+   {
+    "node": "PSD_01_a",
+    "centre": [
+     -3.0,
+     1.85,
+     24.75
+    ],
+    "open_offset": [
+     0.0,
+     0.0,
+     1.1
+    ]
+   },
+   {
+    "node": "PSD_01_b",
+    "centre": [
+     -3.0,
+     1.85,
+     23.65
+    ],
+    "open_offset": [
+     0.0,
+     0.0,
+     -1.1
+    ]
+   },
+   {
+    "node": "PSD_02_a",
+    "centre": [
+     -3.0,
+     1.85,
+     21.25
+    ],
+    "open_offset": [
+     0.0,
+     0.0,
+     1.1
+    ]
+   },
+   {
+    "node": "PSD_02_b",
+    "centre": [
+     -3.0,
+     1.85,
+     20.15
+    ],
+    "open_offset": [
+     0.0,
+     0.0,
+     -1.1
+    ]
+   },
+   {
+    "node": "PSD_03_a",
+    "centre": [
+     -3.0,
+     1.85,
+     -0.55
+    ],
+    "open_offset": [
+     0.0,
+     0.0,
+     1.1
+    ]
+   },
+   {
+    "node": "PSD_03_b",
+    "centre": [
+     -3.0,
+     1.85,
+     -1.65
+    ],
+    "open_offset": [
+     0.0,
+     0.0,
+     -1.1
+    ]
+   },
+   {
+    "node": "PSD_04_a",
+    "centre": [
+     -3.0,
+     1.85,
+     -4.05
+    ],
+    "open_offset": [
+     0.0,
+     0.0,
+     1.1
+    ]
+   },
+   {
+    "node": "PSD_04_b",
+    "centre": [
+     -3.0,
+     1.85,
+     -5.15
+    ],
+    "open_offset": [
+     0.0,
+     0.0,
+     -1.1
+    ]
+   },
+   {
+    "node": "PSD_05_a",
+    "centre": [
+     -3.0,
+     1.85,
+     -17.45
+    ],
+    "open_offset": [
+     0.0,
+     0.0,
+     1.1
+    ]
+   },
+   {
+    "node": "PSD_05_b",
+    "centre": [
+     -3.0,
+     1.85,
+     -18.55
+    ],
+    "open_offset": [
+     0.0,
+     0.0,
+     -1.1
+    ]
+   }
+  ],
+  "light_nodes": [
+   "LIGHT_platform_01",
+   "LIGHT_platform_02",
+   "LIGHT_platform_03",
+   "LIGHT_platform_04",
+   "LIGHT_platform_05",
+   "LIGHT_platform_06",
+   "LIGHT_platform_07",
+   "LIGHT_platform_08",
+   "LIGHT_platform_09",
+   "LIGHT_platform_10",
+   "LIGHT_platform_11",
+   "LIGHT_platform_12",
+   "LIGHT_platform_13",
+   "LIGHT_platform_14",
+   "LIGHT_platform_15",
+   "LIGHT_platform_16",
+   "LIGHT_platform_17",
+   "LIGHT_platform_18",
+   "LIGHT_platform_19",
+   "LIGHT_platform_20",
+   "LIGHT_platform_21",
+   "LIGHT_platform_22",
+   "LIGHT_platform_23",
+   "LIGHT_platform_24",
+   "LIGHT_red_lamp"
+  ],
+  "red_lamp_node": "LIGHT_red_lamp",
+  "spawn_node": "SPAWN_stairs_top",
+  "signage": "abstract glyphs only (procedural texture), no real text"
+ }
+}
