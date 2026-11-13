@@ -83,3 +83,27 @@ Each entry: name, problem, rule, reason, good example, bad example. The director
 ## H13. Near-blinding static
 - Rule: static at full fear stays near-blinding (accessibility toggles still reduce it).
 - Reason: director: "keep it near-blinding."
+
+## H14. Rain lives in the world
+- Rule: rain and its ripples belong to world space (ripples stay put on the ground as the player moves), read as real rain, and stop under any roof: buildings, the station, the shinkansen interior.
+- Reason: director, probe 04: "rain ripples are screen spaced so they move w the player instead of constant on the ground. make the rain realistic. often times there is rain at the wrong time, like when you are inside buildings like in the shinkansen at the end."
+
+## H15. No hitches; story text stays long enough to read
+- Rule: frame time stays smooth through pickups and set pieces (no load or compile spikes in play), and every story text holds until it can be read in full.
+- Reason: director, probe 04: "lot of hitches. picking up the 2nd ledger and ringing the bell, they are displayed too short of time."
+
+## H16. Sound must never read as a bug
+- Rule: footsteps sound like real steps on real surfaces; the monster's static is intermittent and scaled to threat, never a constant wall; no steady drone that could be mistaken for an audio fault. (H13 governs the picture, not the sound.)
+- Reason: director, probe 04: "footsteps are badly sounded. the static sound for monster is too intense and constant. the low hum feels like a audio bug."
+
+## H17. The level leads the player
+- Rule: level design guides the player to each objective (light, sightlines, landmarks, the shape of the space), on Half-Life: Alyx as the reference for guidance through a mission. Study from fetched footage before building.
+- Reason: director, probe 04: "initial path finding is difficult. level design should guide you to the objectives. use half life alyx as level design reference in terms of guiding the player through the mission."
+
+## H18. The moving floors are the strongest beat
+- Rule: the world shift's moving floors are the most captivating thing so far, both visually and as a mechanic; protect and build on them.
+- Reason: director, probe 04: "the level with the moving floors was the most captivating visually and mechanic wise."
+
+## H19. The monster must read as a living body
+- Rule: Kagenui must read as a rigged, articulated body that is scary; anything that reads as stiff or goofy fails.
+- Reason: director, probe 04: "the  monster didn't seem rigged, no skeletal mesh. it comes across as goofy instead of scary."
