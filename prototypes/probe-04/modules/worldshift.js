@@ -1,12 +1,18 @@
 /* worldshift.js: the world shift (brief W2-SHIFT, extends SHIFT-01). OWNER: shift builder. order 50.
  *
- * About 90 s, one continuous walkable sequence built far below the town (y = -400), driven by an unseen koto player:
+ * About 2.5 min (wave 3, H18: was ~90 s), one continuous walkable sequence built far below the town (y = -400), driven by an unseen koto player:
  *   entry  (in town, 2.4 s): the street folds around the player (camera roll + widening FOV), white flash, teleport.
  *   street (~10 s): a copy of the street; on each pluck one pair of building rows hinges up 30 deg on the kerb line, like
  *          Inception's Paris fold, until the street has closed into a covered arcade. Then the red door opens.
  *   hall   (~17 s): (a) hallway stretch: an arcade of the town's own shopfronts; the koto bends a low string and the hall
  *          lengthens (dolly zoom), the sharp pluck snaps it back. The thing behind you steps only on rests.
  *   room   (~25 s): (b) room fold: a tatami room ratchets shut 30 deg per pluck, knocks in the dark, unfolds as a drawbridge.
+ *   river  (~30-45 s, new): three tatami lanes run like conveyors, string n jerks lane n; holes ride the lanes. Switch lanes
+ *          as the holes come (timing + route); the centre lane helps you forward but has the most holes. A hole = fall back to the bank.
+ *   tiers  (~30 s, new): 5x4 pillars rise/sink a storey per pluck (string n = row n), columns out of phase. Step only onto a
+ *          pillar level with yours; you ride yours (the castle moves around you). Climb 4 storeys to the red door. Red-capped
+ *          pillars sink 3 storeys on the low string's bend; stepping off a higher edge drops you; off the side = back to the bank.
+ *   Every move is heard first: a quiet ghost note of the next string half a beat before it (preCue).
  *   grid   (~30 s): (c) castle grid: rows of rooms on rails, string n moves row n; cross on the rest. The koto player
  *          sits far away, its hand lighting on each pluck. The hunter is summoned once and moves only on rests.
  *   exit: the last red door -> flash -> teleport to G.world.station.spawnAfterShift (or where the bell was rung), 'shift-end'.
@@ -17,7 +23,10 @@
  * LISTENS 'shift-start', 'teleport' (only to move its own fallback walker), 'audio-ready'.
  * Camera effects (roll, fall dip, FOV when no player module) are applied after the player module has placed the camera.
  * Runs alone: with no player module it drives the camera itself (WASD/mouse via G.input).
- * Capture hooks: #jump=shift-street | shift-stretch | shift-fold | shift-grid (emit 'shift-start' at that section).
+ * Capture hooks: #jump=shift-street | shift-stretch | shift-fold | shift-river | shift-tiers | shift-grid (emit 'shift-start' at
+ *   that section; also lift the start fade and emit 'start', since mission does not handle shift-* jumps).
+ * H15: the shift's lights live in G.scene from init at intensity 0 (constant light count: no recompiles at the bell).
+ * Town foreshadowing: G.shift.carry routes to G.shift.townCarry (townshift.js) while no shift runs.
  *   extra (testing only): &auto=1 walks the route by itself (fallback walker only) · &ff=SECONDS fast-forwards
  *   · &sim=1 simulates the whole route headless and logs section times · &rm=1 reduce motion.
  */
@@ -69,17 +78,7 @@
   }
 
   /* ---------------- audio: WorldShift.audio bound to G.audioCtx ---------------- */
-  function bindAudio(ctx) {
-    if (!ctx || A.ctx === ctx) return;
-    try {
-      A.ctx = ctx; A.buffers = {};
-      A.master = ctx.createGain(); A.master.gain.value = .6; A.master.connect(ctx.destination);
-      const d = ctx.createDelay(1); d.delayTime.value = .27; const fb = ctx.createGain(); fb.gain.value = .38;
-      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1800;
-      A.wet = ctx.createGain(); A.wet.gain.value = .35;
-      A.wet.connect(d); d.connect(lp); lp.connect(fb); fb.connect(d); lp.connect(A.master);
-    } catch (e) { console.warn('[worldshift] audio unavailable', e); A.ctx = null; }
-  }
+  function bindAudio(ctx) { if (A.bind) A.bind(ctx, .6); }
   const sfx = {
     pluck: (i, o) => { try { A.pluck(i, o); } catch (e) { /* silent */ } },
     clack: v => { try { A.clack(v); } catch (e) { /* silent */ } },
@@ -95,20 +94,33 @@
   G.shift = {
     active: false, fov: null, section: null, t: 0,
     walkable(x, z) { const s = st.sec; if (!st.active || !s) return true; if (st.phase !== 'run') return false; return s.walkable(x - s.ox, z); },
-    carry(x, z) { const s = st.sec; if (!st.active || !s || !s.carry || st.phase !== 'run') return null; return s.carry(x - s.ox, z); }
+    carry(x, z, dt) {
+      if (!st.active) { const tc = G.shift.townCarry; return typeof tc === 'function' ? tc(x, z, dt) : null; } // town foreshadowing (townshift.js)
+      const s = st.sec; if (!s || !s.carry || st.phase !== 'run') return null; return s.carry(x - s.ox, z);
+    },
+    townCarry: null // set by townshift.js: (x, z, dt) -> {dx, dz} | null while a town floor moves under the player
   };
+  /** the koto touches the next string half a beat early: a quiet ghost note, so every move is heard before it is seen */
+  function preCue(ev, strFor) {
+    const next = (ev.inBar + 1) % koto.beatsPerBar; if (koto.rests.indexOf(next) >= 0) return;
+    const s = strFor(next); if (s != null) sfx.pluck(s, { vol: .13, delay: koto.beatLen() * .5 });
+  }
   const ppos = () => hasPlayer() ? G.player.pos : fb.pos;
   const pyaw = () => hasPlayer() ? G.player.yaw : fb.yaw;
   const local = () => { const p = ppos(), s = st.sec; return { x: p.x - (s ? s.ox : 0), z: p.z }; };
 
-  /* shared light pool: constant light count for the whole shift (no shader recompiles mid-sequence) */
-  const hemi = add(root, new THREE.HemisphereLight(0x8a8884, 0x050505, .45));
-  const pool = [0, 1, 2, 3].map(() => { const l = new THREE.PointLight(0xfff0dc, 1.2, 16, 2); root.add(l); return l; });
-  const redL = add(root, new THREE.PointLight(0xff2020, 1.2, 8, 2));
+  /* shared light pool: constant light count for the WHOLE GAME (H15). three r128 recompiles every material when the number of
+     lights in the rendered scene changes, so these lights live directly in G.scene from init (never inside the hidden root,
+     never visible=false, never added/removed) and are switched off with intensity 0 outside the shift. */
+  const hemi = new THREE.HemisphereLight(0x8a8884, 0x050505, 0);
+  const pool = [0, 1, 2, 3].map(() => { const l = new THREE.PointLight(0xfff0dc, 0, 16, 2); l.position.set(0, Y0, 0); return l; });
+  const redL = new THREE.PointLight(0xff2020, 0, 8, 2); redL.position.set(0, Y0, 0);
+  function lightsOff() { hemi.intensity = 0; redL.intensity = 0; for (const l of pool) l.intensity = 0; }
   function lights(list, red) {
-    const ox = st.sec ? st.sec.ox : 0;
-    pool.forEach((l, i) => { const v = list[i]; if (v) { l.position.set(ox + v[0], v[1], v[2]); l.intensity = v[3] == null ? 1.2 : v[3]; l.distance = v[4] || 16; } else l.intensity = 0; });
-    if (red) { redL.position.set(ox + red[0], red[1], red[2]); redL.intensity = red[3] || 1.3; } else redL.intensity = 0;
+    const ox = st.sec ? st.sec.ox : 0, oy = Y0 + (st.sec && st.sec.yOff ? st.sec.yOff() : 0);
+    hemi.intensity = .45;
+    pool.forEach((l, i) => { const v = list[i]; if (v) { l.position.set(ox + v[0], oy + v[1], v[2]); l.intensity = v[3] == null ? 1.2 : v[3]; l.distance = v[4] || 16; } else l.intensity = 0; });
+    if (red) { redL.position.set(ox + red[0], oy + red[1], red[2]); redL.intensity = red[3] || 1.3; } else redL.intensity = 0;
   }
 
   /* ---------------- red doors and vestibules ---------------- */
@@ -531,6 +543,256 @@
     };
   }
 
+  /* a fall through the floor: the camera drops, then you are put back at the start of this section (never a run reset, H11) */
+  function faller(back) {
+    const f = { on: 0, t: 0 };
+    f.start = () => { if (f.on) return; f.on = 1; f.t = 0; sfx.pluck(0, { vol: .5, bend: .5, bendTime: 1 }); };
+    f.update = dt => {
+      if (!f.on) return false;
+      f.t += dt; st.dip = rm() ? 0 : 7 * f.t * f.t;
+      if (rm()) st.fade = Math.min(1, f.t / .5);
+      if (f.t > .8) { f.on = 0; f.t = 0; st.dip = 0; fear(.3); sfx.clack(.6); back(); }
+      return true;
+    };
+    return f;
+  }
+
+  /* ======================================================================
+     SECTION 4 (new): THE RIVER. Three lanes of tatami run like conveyors toward you; string n jerks lane n.
+     Lanes carry holes (missing mats) with them. Cross by switching lanes as the holes come: timing + route.
+     Lane 1 (centre) runs forward and helps you, but it has the most holes. A hole drops you back to the bank.
+     ====================================================================== */
+  function buildRiver() {
+    const ox = 800, g = add(root, new THREE.Group()); g.position.x = ox;
+    const LEN = 36, MAT = 1.8, NM = LEN / MAT, LW = 2.4, LX = [-2.6, 0, 2.6], MY = -.06;
+    const STEP = [MAT, -MAT, MAT * 2];                 // per pluck: + = toward you (back to the entry)
+    const HOLES = [[3, 4, 12, 13], [2, 3, 4, 9, 10, 11, 15, 16, 17], [6, 7, 15, 16]];
+    const matM = M('rivermat', { map: tex('tatami', 1, 1) }), edgeM = B('red', PAL.red), slabM = M('slab', { color: 0x1a1816 });
+    const lanes = LX.map((xc, l) => {
+      const lg = add(g, new THREE.Group()), mats = [];
+      for (let k = 0; k < NM; k++) {
+        if (HOLES[l].indexOf(k) >= 0) { mats.push(null); continue; }
+        const m = add(lg, WS.box(LW - .06, .1, MAT - .05, matM, xc, MY - .05, 0)); mats.push(m);
+        // the edge of a hole is marked red, so you can read it coming
+        if (HOLES[l].indexOf((k + 1) % NM) >= 0 || HOLES[l].indexOf((k + NM - 1) % NM) >= 0) {
+          const e = add(m, WS.box(LW - .06, .02, .08, edgeM, 0, .06, HOLES[l].indexOf((k + 1) % NM) >= 0 ? -(MAT / 2 - .06) : (MAT / 2 - .06)));
+          e.userData.edge = 1;
+        }
+      }
+      const str = WS.makeString(-LEN, 0, 3.8, -xc, PAL.red); str.rotation.y = -Math.PI / 2; g.add(str);
+      return { xc, mats, cur: 0, prev: 0, from: 0, to: 0, t: 1, v: 0, str };
+    });
+    function layout(L) { for (let k = 0; k < NM; k++) { const m = L.mats[k]; if (!m) continue; const s = ((k * MAT + MAT / 2 - L.cur) % LEN + LEN) % LEN; m.position.z = -s; } }
+    // banks overhang the lane ends by one mat, so the conveyor wraps out of sight underneath them
+    const bank = (z0, z1) => { box(g, 9, .5, z0 - z1, slabM, 0, -.25, (z0 + z1) / 2); floorPlane(g, 8.8, z0 - z1 - .1, M('tatami3', { map: tex('tatami', 3, 2) }), 0, (z0 + z1) / 2, .005); };
+    bank(4, -MAT); bank(-LEN + MAT, -LEN - 4);
+    for (const s of [-1, 1]) box(g, .14, .02, LEN - 2 * MAT, B('seam', 0x050505), s * 1.3, MY + .01, -LEN / 2); // seams between lanes
+    // walls: shoji that slide the other way on each pluck (the room is being played, not just the floor)
+    const wallG = [-1, 1].map(s => {
+      const wg = add(g, new THREE.Group());
+      for (let z = 6; z > -LEN - 10; z -= 4) { plane(wg, 3.8, 3.4, M('rivershoji', { map: tex('shoji', 2, 2), emissive: 0x2a2926, emissiveMap: tex('shoji', 2, 2) }), s * 4.4, 1.7, z, 0, -s * Math.PI / 2); box(wg, .16, 3.6, .16, M('post', { color: 0x141210 }), s * 4.35, 1.8, z - 2); }
+      return wg;
+    });
+    plane(g, 9, LEN + 8, M('hallroof', { map: tex('beams', 1, 10) }), 0, 4.2, -LEN / 2, Math.PI / 2);
+    const lan = [];
+    for (let z = -4; z > -LEN; z -= 8) { const l = WS.lantern({ red: z < -LEN + 6, cord: .4 }); l.position.set(0, 3.3, z); g.add(l); lan.push(l); }
+    const field = castleField(g, -6, 6, [-16]);       // seen through the holes
+    const entry = doorway(g, 0, 4, 1, 9, 4.2);
+    const exit = doorway(g, 0, -LEN - 4, -1, 9, 4.2);
+    let wallOff = 0, wallFrom = 0, wallTo = 0, wallT = 1;
+    const fall = faller(() => { emitTeleport(ox, 2, 0); });
+    function laneAt(x) { for (let l = 0; l < 3; l++) if (Math.abs(x - LX[l]) <= LW / 2 + .1) return l; return -1; }
+    function hole(l, z) { const s = ((-z + lanes[l].cur) % LEN + LEN) % LEN; return HOLES[l].indexOf(Math.floor(s / MAT)) >= 0; }
+    function onBank(z) { return z > -MAT + .25 || z < -LEN + MAT - .25; }
+    const sec = {
+      name: 'river', ox, g, entryZ: 4,
+      koto: { bpm: 84, beatsPerBar: 4, rests: [3] },
+      enter() { for (const L of lanes) { L.cur = L.prev = L.from = L.to = 0; L.v = 0; L.t = 1; layout(L); } fall.on = 0; entry.k = entry.target = 1; entry.update(0); exit.k = exit.target = 0; exit.update(0); },
+      onBeat(ev) {
+        preCue(ev, n => 3 + n * 2);
+        if (ev.rest) { sfx.knock(.2); return; }
+        field.move(ev.beat);
+        const L = lanes[ev.inBar]; if (!L) return;
+        L.from = L.cur; L.to += STEP[ev.inBar]; L.t = 0;
+        L.str.pluck(.5); sfx.pluck(3 + ev.inBar * 2, { vol: .55 }); sfx.clack(.4);
+        wallFrom = wallOff; wallTo = wallOff - STEP[ev.inBar] * .5; wallT = 0;
+      },
+      update(dt) {
+        for (const L of lanes) {
+          L.t = Math.min(1, L.t + dt / .35); L.cur = lerp(L.from, L.to, WS.easeOut(L.t)); L.v = L.cur - L.prev; L.prev = L.cur;
+          layout(L); L.str.tick(dt);
+        }
+        wallT = Math.min(1, wallT + dt / .35); wallOff = lerp(wallFrom, wallTo, WS.easeOut(wallT)); for (const w of wallG) w.position.z = ((wallOff % 4) + 4) % 4;
+        field.update(dt); entry.update(dt); exit.update(dt);
+        for (let i = 0; i < lan.length; i++) lan[i].rotation.z = .08 * Math.sin(koto.t * 2 + i);
+        const q = local();
+        if (q.z < -LEN + 1) exit.open();
+        lights([[0, 3.4, 0, 1.2], [0, 3.4, -12, 1.1], [0, 3.4, -24, 1.1], [0, 3.4, -LEN - 1, 1]], [0, 2, -LEN - 2.5, 1.4]);
+        if (fall.update(dt)) return;
+        if (entry.inside(q.x, q.z, 0) || exit.inside(q.x, q.z, 0) || onBank(q.z)) return;
+        const l = laneAt(q.x);
+        if (l >= 0 && hole(l, q.z)) fall.start();
+      },
+      walkable(lx, z) {
+        if (fall.on) return false;
+        if (entry.inside(lx, z, 0)) return true;
+        if (exit.isOpen() && exit.inside(lx, z, 0)) return true;
+        return Math.abs(lx) <= 3.85 && z <= 3.9 && z >= -LEN - 3.9;
+      },
+      carry(lx, z) {
+        if (fall.on || onBank(z)) return null;
+        const l = laneAt(lx); if (l < 0) return null;
+        const v = lanes[l].v; if (!v) return null;
+        const nz = Math.min(z + v, -MAT + .5); // the conveyor delivers you onto the bank, never into the door wall
+        return { dx: 0, dz: nz - z };
+      },
+      exitAt: z => z < -LEN - 4 - 1.2,
+      exitZ: () => -LEN - 4,
+      auto(q) {
+        if (onBank(q.z)) return { x: clamp(-q.x * .8, -1, 1), z: -1 };
+        const clear = (l, z0, z1) => { for (let z = z0; z >= z1; z -= .3) if (!onBank(z) && hole(l, z)) return false; return true; };
+        let l = laneAt(q.x); if (l < 0) l = 1;
+        let tl = l;
+        if (!clear(l, q.z - .2, q.z - 2.6)) { for (const c of [l - 1, l + 1]) if (c >= 0 && c < 3 && clear(c, q.z + .9, q.z - 2.6)) { tl = c; break; } }
+        const dx = LX[tl] - q.x, go = tl === l && clear(l, q.z - .2, q.z - 1.4);
+        return { x: clamp(dx * 1.5, -1, 1), z: go ? -1 : 0 };
+      },
+      dbg: () => lanes.map(L => L.cur.toFixed(1)).join(' ')
+    };
+    return sec;
+  }
+
+  /* ======================================================================
+     SECTION 5 (new): THE TIERS. A field of pillars rises and sinks one storey per pluck (string n = row n).
+     You may step only onto a pillar level with yours; you ride the one you stand on (the castle moves, not you:
+     the whole room slides past your eyes while your floor stays still). Climb five rows to the red door, four
+     storeys up. Columns are out of phase, so the route is chosen, not walked. Two red-capped pillars sink three
+     storeys on the low string's bend; stepping off a lower edge drops you; walking off the side drops you back
+     to the bank.
+     ====================================================================== */
+  function buildTiers() {
+    const ox = 1000, g = add(root, new THREE.Group()); g.position.x = ox;
+    const NR = 5, NC = 4, SZ = 3.0, GAP = .1, P = SZ + GAP, STOREY = 1.2, EXITL = 4;
+    const T4 = [0, 1, 0, -1], tri = k => T4[((k % 4) + 4) % 4];
+    const P0 = [0, 2, 1, 3];
+    const colX = c => (c - (NC - 1) / 2) * P, rowZ = r => -1 - GAP - SZ / 2 - r * P;
+    const zEnd = rowZ(NR - 1) - SZ / 2 - GAP;          // where the exit bank begins
+    const pillarM = M('pillar', { color: 0x1c1a18, rough: .9 }), topM = M('tatami4', { map: tex('tatami', 2, 2) }), railM = M('rail2', { color: 0x040404, rough: .35 });
+    const capM = B('red', PAL.red);
+    const pillars = [];
+    for (let r = 0; r < NR; r++) for (let c = 0; c < NC; c++) {
+      const pg = add(g, new THREE.Group()); pg.position.set(colX(c), 0, rowZ(r));
+      box(pg, SZ, 40, SZ, pillarM, 0, -20.02, 0);
+      floorPlane(pg, SZ - .1, SZ - .1, topM, 0, 0, .001);
+      const sink = (r === 1 && c === 2) || (r === 3 && c === 1);
+      if (sink) for (const s of [-1, 1]) { box(pg, SZ, .06, .12, capM, 0, .03, s * (SZ / 2 - .06)); box(pg, .12, .06, SZ, capM, s * (SZ / 2 - .06), .03, 0); }
+      else box(pg, .3, .3, .3, capM, SZ / 2 - .3, -.6, SZ / 2 + .02);            // the clamp that holds it to its string
+      const p = { r, c, g: pg, sink, lvl: 0, from: 0, to: 0, t: 1, x: colX(c), z: rowZ(r) };
+      pillars.push(p);
+    }
+    // each row hangs from a red string overhead
+    const strings = [];
+    for (let r = 0; r < NR; r++) { const s = WS.makeString(-30, 30, 9 + r * STOREY, rowZ(r), PAL.red); g.add(s); strings.push(s); for (const sx of [-1, 1]) box(g, .5, 60, .5, railM, sx * 30, -10, rowZ(r)); }
+    // banks: entry (level 0) and exit (level EXITL)
+    box(g, 13, 40, 5, M('slab', { color: 0x1a1816 }), 0, -20, 1.5); floorPlane(g, 12.8, 4.9, M('tatami3', { map: tex('tatami', 3, 2) }), 0, 1.5, .005);
+    const hi = add(g, new THREE.Group()); hi.position.y = EXITL * STOREY;
+    box(hi, 13, 40, 6, M('slab', { color: 0x1a1816 }), 0, -20, zEnd - 3); floorPlane(hi, 12.8, 5.9, M('tatami3', { map: tex('tatami', 3, 2) }), 0, zEnd - 3, .005);
+    const entry = doorway(g, 0, 4, 1, 13, 5);
+    const exit = doorway(hi, 0, zEnd - 6, -1, 13, 5);
+    const field = castleField(g, -4, 7, [-22, 14]);
+    for (let i = 0; i < 4; i++) { const l = WS.lantern({ red: i === 3 }); l.position.set((i - 1.5) * 6.2, EXITL * STOREY + 3.2 - i * .2, zEnd - 1.5 - (i % 2)); g.add(l); }
+    const st5 = { n: [0, 0, 0, 0, 0], cur: 0, vy: 0, bar: 0, on: null };
+    const fall = faller(() => { st5.cur = 0; st5.vy = 0; st5.on = null; g.position.y = 0; emitTeleport(ox, 2, 0); });
+    const target = p => p.r + tri(st5.n[p.r] + P0[p.c] - p.r) + (p.sink && st5.bar % 4 === 2 ? -3 : 0);
+    function support(x, z, m) {
+      m = m || 0;
+      if (Math.abs(x) <= 6.4 + m && z <= 4 && z >= -1 - m) return { lvl: 0, bank: 1 };
+      if (Math.abs(x) <= 6.4 + m && z <= zEnd + m && z >= zEnd - 6) return { lvl: EXITL, bank: 2 };
+      let best = null, bd = 1e9;
+      for (const p of pillars) { const dx = Math.abs(x - p.x), dz = Math.abs(z - p.z); if (dx <= SZ / 2 + GAP / 2 + m && dz <= SZ / 2 + GAP / 2 + m) { const d = dx + dz; if (d < bd) { bd = d; best = p; } } }
+      return best;
+    }
+    const sec = {
+      name: 'tiers', ox, g, entryZ: 4,
+      koto: { bpm: 84, beatsPerBar: 6, rests: [5] },
+      yOff: () => g.position.y,
+      enter() {
+        st5.n = [0, 0, 0, 0, 0]; st5.cur = 0; st5.vy = 0; st5.bar = 0; st5.on = null; fall.on = 0; g.position.y = 0;
+        for (const p of pillars) { p.lvl = p.from = p.to = target(p); p.t = 1; p.g.position.y = p.lvl * STOREY; }
+        entry.k = entry.target = 1; entry.update(0); exit.k = exit.target = 0; exit.update(0);
+      },
+      onBeat(ev) {
+        preCue(ev, n => 1 + n * 2);
+        if (ev.inBar === 0) {
+          st5.bar = ev.bar;
+          if (ev.bar % 4 === 2) sfx.pluck(0, { vol: .7, bend: .6, bendTime: 1.2 }); // the low string bends: red caps sink
+          if (ev.bar % 4 === 3) sfx.pluck(0, { vol: .5 });
+          for (const p of pillars) if (p.sink) { p.from = p.lvl; p.to = target(p); p.t = 0; }
+        }
+        if (ev.rest) { sfx.knock(.2); return; }
+        field.move(ev.beat);
+        const r = ev.inBar; if (r >= NR) return;
+        st5.n[r]++;
+        for (const p of pillars) if (p.r === r) { p.from = p.lvl; p.to = target(p); p.t = 0; }
+        strings[r].pluck(.8); sfx.pluck(1 + r * 2, { vol: .55 }); sfx.clack(.45);
+      },
+      update(dt) {
+        for (const p of pillars) { if (p.t < 1) p.t = Math.min(1, p.t + dt / (p.sink && Math.abs(p.to - p.from) > 2 ? .7 : .38)); p.lvl = lerp(p.from, p.to, WS.easeOut(p.t)); p.g.position.y = p.lvl * STOREY; }
+        for (const s of strings) s.tick(dt);
+        field.update(dt); entry.update(dt); exit.update(dt);
+        const q = local();
+        if (fall.update(dt)) { lights5(); return; }
+        const s = support(q.x, q.z, .3);
+        const inVest = entry.inside(q.x, q.z, 0) || exit.inside(q.x, q.z, 0);
+        if (inVest) { st5.cur = q.z > 0 ? 0 : EXITL; st5.vy = 0; }
+        else if (!s) { fall.start(); }
+        else if (s.lvl < st5.cur - .05 && s !== st5.on) { // you stepped off a higher floor, or your pillar fell away: drop with gravity
+          st5.vy += 9.8 / STOREY * dt; st5.cur = Math.max(s.lvl, st5.cur - st5.vy * dt);
+          if (st5.cur === s.lvl) { if (st5.vy > 2) { sfx.knock(.6); fear(.1); } st5.vy = 0; st5.on = s; }
+        } else { st5.cur = s.lvl; st5.vy = 0; st5.on = s; }
+        g.position.y = -st5.cur * STOREY;
+        if (q.z < zEnd - 1) exit.open();
+        lights5();
+        function lights5() {
+          const ps = support(q.x, q.z, .3), px = ps && ps.x != null ? ps.x : 0, pz = ps && ps.z != null ? ps.z : q.z;
+          lights([[px, st5.cur * STOREY + 3.2, pz, 1.3, 12], [0, 2.5, 2, .9], [0, EXITL * STOREY + 3, zEnd - 2, 1.2], [0, 3 * STOREY + 3, rowZ(2), .9, 18]], [0, EXITL * STOREY + 2, zEnd - 4.5, 1.5]);
+        }
+      },
+      walkable(lx, z) {
+        if (fall.on) return false;
+        if (entry.inside(lx, z, 0)) return st5.cur < .3;
+        if (exit.isOpen() && exit.inside(lx, z, 0)) return Math.abs(st5.cur - EXITL) < .3;
+        if (z > 4 || z < zEnd - 6) return false;
+        const s = support(lx, z, -.05);
+        if (!s) return Math.abs(lx) <= 9; // the void at the sides: you can walk off and fall
+        return s.lvl <= st5.cur + .4;     // up: only level; down: any (you drop)
+      },
+      carry: () => null,
+      exitAt: z => z < zEnd - 6 - 1.2,
+      exitZ: () => zEnd - 6,
+      auto(q) {
+        const s = support(q.x, q.z, .1);
+        if (!s) return entry.inside(q.x, q.z, 0) || exit.inside(q.x, q.z, 0) ? { x: clamp(-q.x, -1, 1), z: -1 } : null;
+        if (st5.vy) return null;
+        if (s.bank === 2 || exit.isOpen() && q.z < zEnd - 2) return { x: clamp(-q.x, -1, 1), z: -1 };
+        // walk toward the column whose next step is level with us now; otherwise wait at the edge of ours
+        const r = s.bank === 1 ? -1 : s.r, nextRow = pillars.filter(p => p.r === r + 1);
+        const isLvl = p => Math.abs(p.lvl - st5.cur) < .2 && p.t >= 1;
+        if (r + 1 >= NR) { const ok = Math.abs(EXITL - st5.cur) < .2; return { x: clamp((s.x - q.x) * .8, -1, 1), z: ok ? -1 : clamp((s.z - SZ / 2 + .5 - q.z) * 2, -1, 1) }; }
+        const cx = s.bank ? q.x : s.x;
+        const here = nextRow.find(p => Math.abs(p.x - cx) < .5);
+        if (here && isLvl(here)) return { x: clamp((here.x - q.x) * 1.2, -1, 1), z: -1 };
+        if (s.bank) { const lv = nextRow.find(isLvl); if (lv) return { x: clamp((lv.x - q.x) * .9, -1, 1), z: Math.abs(lv.x - q.x) < 1 ? -1 : 0 }; return { x: 0, z: clamp((-1 + .5 - q.z) * 2, -1, 1) }; }
+        // sideways to a level neighbour whose next step is level
+        const side = pillars.find(p => p.r === s.r && Math.abs(p.c - s.c) === 1 && isLvl(p));
+        if (side && (Math.random() < .02)) return { x: Math.sign(side.x - q.x), z: 0 };
+        return { x: clamp((s.x - q.x) * 1.2, -1, 1), z: clamp((s.z - SZ / 2 + .5 - q.z) * 2, -1, 1) };
+      },
+      dbg: () => 'cur ' + st5.cur.toFixed(2) + ' n ' + st5.n.join(',')
+    };
+    return sec;
+  }
+
   /* ---------------- sequence control ---------------- */
   let SECS = null;
   function emitTeleport(x, z, yaw) {
@@ -571,7 +833,7 @@
     if (sp) { const v = sp.pos || sp; pos = new THREE.Vector3(v.x || 0, v.y || 0, v.z || 0); if (sp.yaw != null) yaw = sp.yaw; else if (station.spawnYaw != null) yaw = station.spawnYaw; }
     else pos = st.origin ? st.origin.clone() : new THREE.Vector3();
     st.active = false; G.shift.active = false; G.shift.fov = null; G.shift.section = null; st.phase = 'idle'; st.sec = null;
-    root.visible = false; koto.clear(); sfx.drone(false); sfx.pluck(9, { vol: .6 }); sfx.pluck(12, { vol: .4, delay: .3 });
+    root.visible = false; lightsOff(); koto.clear(); sfx.drone(false); sfx.pluck(9, { vol: .6 }); sfx.pluck(12, { vol: .4, delay: .3 });
     const s = st.saved || {};
     if (G.fx && G.fx.fog) { if (s.fxDensity != null) G.fx.fog.density = s.fxDensity; if (G.fx.enable) { G.fx.enable('rain', s.rain !== false); G.fx.enable('splashes', s.splashes !== false); } }
     else G.scene.fog = s.fog || null;
@@ -623,7 +885,7 @@
       if (!hasPlayer()) fallbackWalk(dt);
       const q = local();
       if (sec.exitAt(q.z)) {
-        const next = { street: 'hall', hall: 'room', room: 'grid' }[sec.name];
+        const next = { street: 'hall', hall: 'room', room: 'river', river: 'tiers', tiers: 'grid' }[sec.name];
         const exitZ = sec.exitZ ? sec.exitZ() : null;
         if (!next) { finish(); return; }
         // seamless: same offset from the door in the next section's identical vestibule
@@ -652,18 +914,21 @@
     order: 50,
     init(G) {
       G.scene.add(root);
-      SECS = { street: buildStreet(), hall: buildHall(), room: buildRoom(), grid: buildGrid() };
+      SECS = { street: buildStreet(), hall: buildHall(), room: buildRoom(), river: buildRiver(), tiers: buildTiers(), grid: buildGrid() };
+      G.scene.add(hemi, redL, ...pool); // lights: in the scene from init, off (intensity 0) until the shift (H15)
       G.on('shift-start', d => start(d && d.at));
       G.on('audio-ready', ctx => { if (st.active) bindAudio(ctx); });
       G.on('ready', () => {
-        const j = G.jump || '', map = { 'shift-street': 'street', 'shift': 'street', 'shift-stretch': 'hall', 'shift-fold': 'room', 'shift-grid': 'grid' };
+        const j = G.jump || '', map = { 'shift-street': 'street', 'shift': 'street', 'shift-stretch': 'hall', 'shift-fold': 'room', 'shift-river': 'river', 'shift-tiers': 'tiers', 'shift-grid': 'grid' };
         if (!map[j]) return;
         if (!hasPlayer()) fb.pos.set(0, 0, 0);
-        if (G.ui && !hasMod('mission')) G.ui.fade(0); // capture hook only: nobody else lifts the start fade
+        // capture hook / review console: mission does not handle shift-* jumps, so lift the start fade and start play here
+        if (G.ui) G.ui.fade(0);
+        G.emit('start');
         G.emit('shift-start', { at: map[j] });
         if (HP.get('sim') === '1') { // headless route check: walk it all, log section times
           fb.auto = true; let n = 0; while (st.active && n++ < 30 * 400) { G.dt = 1 / 30; step(1 / 30); }
-          if (st.active) console.log('[worldshift] sim stuck in ' + st.sec.name + ' at ' + JSON.stringify(local()) + ' ' + (st.sec.dbg ? st.sec.dbg() : ''));
+          if (st.active) console.log('[worldshift] sim stuck in ' + st.sec.name + ' at ' + JSON.stringify(local()) + ' ' + (st.sec.dbg ? st.sec.dbg() : '') + ' | ' + st.log.join(' | '));
         } else if (HP.has('ff')) { const T = +HP.get('ff'); let t = 0; st.ff = true; while (t < T && st.active) { G.dt = 1 / 30; step(1 / 30); t += 1 / 30; } st.ff = false; st.flash = 0; if (G.ui) G.ui.flash(0); }
         if (HP.has('yaw')) fb.yaw = +HP.get('yaw'); if (HP.has('pitch')) fb.pitch = +HP.get('pitch');
       });
