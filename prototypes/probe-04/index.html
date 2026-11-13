@@ -1,0 +1,96 @@
+<title>Style Probe 04</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<!-- OWNER: integrator. Builders add nothing here; each module script below is loaded if present and skipped if missing. -->
+<style>
+:root { --ink: #070708; --paper: #e8e6e1; --muted: #8d8b86; --red: #b3121b; --panel: rgba(7,7,8,.9);
+  --font-title: "Cormorant Garamond", Georgia, serif; --font-ui: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; --font-mono: "IBM Plex Mono", Consolas, monospace; color-scheme: dark; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--ink); color: var(--paper); font: 15px/1.5 var(--font-ui); overflow: hidden; }
+#stage { position: fixed; inset: 0; } #stage canvas { display: block; width: 100%; height: 100%; }
+.layer { position: fixed; inset: 0; pointer-events: none; }
+/* HUD slots. Text in them is owned by: #objective #intel #toast #title-text #card-*: mission · #prompt #status: player · #hurt: player · #fade #flash: anyone via G.ui */
+#hud { padding: calc(16px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 16px max(16px, env(safe-area-inset-left, 0px)); display: flex; justify-content: space-between; gap: 16px; }
+#objective { font: 600 14px var(--font-ui); letter-spacing: .05em; text-shadow: 0 1px 3px #000; max-width: 60vw; }
+#objective:not(:empty)::before { content: "OBJECTIVE  "; color: var(--red); font-size: 11px; letter-spacing: .2em; }
+#intel { font: 500 13px var(--font-mono); color: var(--muted); }
+#status { position: fixed; left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); font: 500 11px var(--font-mono); color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+#prompt { position: fixed; left: 50%; bottom: 24vh; transform: translateX(-50%); font: 600 15px var(--font-ui); padding: 7px 14px; border: 1px solid var(--paper); background: rgba(0,0,0,.55); white-space: nowrap; }
+#toast { position: fixed; left: 50%; top: 28vh; transform: translateX(-50%); font: 600 italic clamp(18px, 2.6vw, 26px) var(--font-title); text-align: center; opacity: 0; transition: opacity .8s; max-width: 86vw; text-shadow: 0 2px 8px #000; }
+#title-text { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 12vh; gap: 8px; text-align: center; }
+#hurt { background: rgba(160,0,10,.55); opacity: 0; transition: opacity .15s; }
+#flash { background: #fff; opacity: 0; }
+#fade { background: var(--ink); opacity: 1; transition: opacity 1.2s; }
+#look { position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); font-size: 13px; color: var(--muted); background: rgba(0,0,0,.6); padding: 6px 12px; }
+.card { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px)); background: var(--panel); overflow-y: auto; }
+.card .inner { max-width: 640px; width: 100%; display: flex; flex-direction: column; gap: 14px; }
+.card h1 { font: 700 clamp(32px, 6vw, 54px)/1.05 var(--font-title); margin: 0; }
+.card h1 span { color: var(--red); }
+.card p { margin: 0; color: var(--muted); }
+.card label { font-weight: 600; font-size: 14px; }
+.card textarea { width: 100%; box-sizing: border-box; min-height: 56px; padding: 10px 12px; font: 15px/1.5 var(--font-ui); background: #141416; color: var(--paper); border: 1px solid #333; resize: vertical; }
+.keys { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 13px; color: var(--muted); }
+kbd { font: 600 12px var(--font-ui); border: 1px solid #555; padding: 1px 5px; color: var(--paper); }
+button { font: 600 15px var(--font-ui); padding: 11px 22px; border: 0; cursor: pointer; background: var(--red); color: #fff; }
+button.ghost { background: transparent; color: var(--paper); border: 1px solid #555; }
+:focus-visible { outline: 2px solid var(--paper); outline-offset: 2px; }
+</style>
+
+<div id="stage"></div>
+<div id="title-text" class="layer"></div>
+<div id="hud" class="layer" hidden><div id="objective"></div><div id="intel"></div></div>
+<div id="status" hidden></div>
+<div id="prompt" hidden></div>
+<div id="toast"></div>
+<div id="look" hidden>Click to look around</div>
+<div id="hurt" class="layer"></div>
+<div id="flash" class="layer"></div>
+<div id="fade" class="layer"></div>
+
+<section class="card" id="card-start">
+  <div class="inner">
+    <h1>Style probe <span>04</span></h1>
+    <p>The first full slice: a rainy, dead Japanese town at night, three dead drops, something that hunts you, places to hide, the shrine bell, the castle, and the train out. About eight minutes. Use headphones.</p>
+    <div class="keys">
+      <kbd>WASD</kbd><span>move · <kbd>Shift</kbd> run · <kbd>C</kbd> crouch</span>
+      <kbd>Mouse</kbd><span>look · <kbd>Right button</kbd> focus the light</span>
+      <kbd>F</kbd><span>flashlight · <kbd>E</kbd> interact, hide, leave a hiding spot</span>
+      <kbd>Pad</kbd><span>sticks · LT focus · RB light · A interact · B crouch · L3 run</span>
+    </div>
+    <div><button id="begin" type="button">Begin</button></div>
+  </div>
+</section>
+<section class="card" id="card-end" hidden><div class="inner" id="card-end-inner"></div></section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="../shared/fx.js"></script>
+<script src="../shared/score.js"></script>
+<script src="../shared/shift.js"></script>
+<script src="core.js"></script>
+<script>
+  /* tiny UI helpers shared by modules (owner: integrator) */
+  G.ui = {
+    el: id => document.getElementById(id),
+    fade: v => { document.getElementById('fade').style.opacity = v; },
+    flash: v => { document.getElementById('flash').style.opacity = v; },
+    toast(label, text, sec) { const t = document.getElementById('toast'); t.textContent = ''; const b = document.createElement('div'); b.style.cssText = 'font:500 11px var(--font-mono);letter-spacing:.25em;color:var(--red);font-style:normal;margin-bottom:4px'; b.textContent = label || ''; t.append(b, document.createTextNode(text)); t.style.opacity = 1; clearTimeout(this._tt); this._tt = setTimeout(() => t.style.opacity = 0, (sec || 4) * 1000); }
+  };
+  document.getElementById('begin').addEventListener('click', () => { document.getElementById('card-start').hidden = true; G.emit('begin'); });
+  if (G.jump) document.getElementById('card-start').hidden = true;
+</script>
+<!-- modules: each optional; order of execution is set by G.register(order) -->
+<script src="modules/player.js" onerror="console.warn('module missing: player')"></script>
+<script src="modules/level.js" onerror="console.warn('module missing: level')"></script>
+<script src="modules/monster.js" onerror="console.warn('module missing: monster')"></script>
+<script src="modules/yokai.js" onerror="console.warn('module missing: yokai')"></script>
+<script src="modules/worldshift.js" onerror="console.warn('module missing: worldshift')"></script>
+<script src="modules/mission.js" onerror="console.warn('module missing: mission')"></script>
+<script src="modules/audio.js" onerror="console.warn('module missing: audio')"></script>

@@ -1,5 +1,16 @@
-# One owner per shared system. Enforced by a check from Phase 1.
-# system                owner
-docs/references         integrator
-docs/anchors            integrator
-process/*               integrator
+# One owner per file or shared system. A builder may write only files it owns (enforced at merge by the integrator).
+# path                                         owner
+prototypes/probe-04/core.js                    integrator
+prototypes/probe-04/index.html                 integrator
+tools/                                         integrator
+process/ docs/macro-design.md docs/constraints.md docs/references/_house/   integrator
+prototypes/probe-04/modules/player.js          B-player
+prototypes/probe-04/modules/level.js           B-level
+prototypes/probe-04/modules/monster.js         B-monster
+prototypes/probe-04/modules/yokai.js           B-yokai
+prototypes/probe-04/modules/worldshift.js      B-shift
+prototypes/probe-04/modules/mission.js         B-mission
+prototypes/probe-04/modules/audio.js           B-audio
+prototypes/shared/score.js                     B-audio   (wave 2: adds the spy-escape cue)
+prototypes/assets/train/                       B-train
+# shared state fields in G (see core.js header): input=core, player=player, monster=monster, mission=mission, world=level
