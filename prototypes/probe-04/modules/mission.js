@@ -406,7 +406,12 @@
     TR.sStop = -TR.doorX; TR.state = stopped ? 'open' : 'arrive'; TR.t = stopped ? 99 : 0;
     trainAt(stopped ? TR.sStop : TR.sStop - 260);
     if (stopped) openDoors(1);
-    const doorPos = P0.clone().setY(anchor.y);
+    // the board point must be reachable from the platform: P0 is on the track centreline (~4 m past the platform edge),
+    // so pull it toward the anchor (the platform side), stopping ~1.4 m short of the train's centreline.
+    const toA = anchor.clone().sub(P0).setY(0), dA = toA.length();
+    const doorPos = (dA > 2.2 ? P0.clone().addScaledVector(toA.normalize(), dA - 1.0) : P0.clone()).setY(anchor.y);
+    if (S0 && S0.platformBox && S0.platformBox.max) { // clamp inside the platform's footprint if level gave one
+      const bx = S0.platformBox; doorPos.x = Math.min(bx.max.x - .5, Math.max(bx.min.x + .5, doorPos.x)); doorPos.z = Math.min(bx.max.z - .5, Math.max(bx.min.z + .5, doorPos.z)); }
     if (!TR.boardI) TR.boardI = addInteract({ id: 'mission-board', pos: doorPos, radius: 2.6, label: 'Board', enabled: () => TR.state === 'open' && M.phase === 'platform', onUse: board });
   }
   function openDoors(k) { for (const d of TR.doors) d.position.x = d.userData.x0 - 1.05 * k; }

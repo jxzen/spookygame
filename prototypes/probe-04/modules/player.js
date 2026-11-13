@@ -208,7 +208,7 @@
       const d = Math.hypot(pos.x - P.pos.x, pos.z - P.pos.z);
       if (d <= (radius || 1.5) && d / (radius || 1.5) < bd) { bd = d / (radius || 1.5); best = { kind, ref, text }; }
     };
-    S.items.forEach(it => { if (it.enabled !== false) consider('item', it, it.pos, it.radius, it.text); });
+    S.items.forEach(it => { const en = typeof it.enabled === 'function' ? it.enabled() : it.enabled; if (en !== false) consider('item', it, it.pos, it.radius, it.text); });
     const spots = G.world && Array.isArray(G.world.hideSpots) ? G.world.hideSpots : [];
     for (const s of spots) if (s && s.pos) consider('hide', s, s.pos, s.radius || 1.2, 'Hide');
     return best;
