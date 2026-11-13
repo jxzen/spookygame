@@ -67,8 +67,8 @@
 
   <section>
     <h2>Offline check</h2>
-    <button id="offline">Render 100 s offline tour</button>
-    <span class="note">Renders explore, tension, hunt (with a yokai sting), hide, shift, castle and escape with OfflineAudioContext. Reports LUFS, true peak and out-of-key notes. Headless: open with ?offline=1</span>
+    <button id="offline">Render 130 s offline tour</button>
+    <span class="note">Renders explore, tension, hunt (with a yokai sting), hide, shift, castle, escape and the spy escape cue (5/4) with OfflineAudioContext. Reports LUFS, true peak and out-of-key notes. Headless: open with ?offline=1</span>
     <pre id="result"></pre>
   </section>
 </main>
@@ -113,9 +113,10 @@
   const TOUR = [
     [0, 'state', 'explore'], [0, 'int', .3], [18, 'int', .75], [30, 'state', 'tension'], [30, 'int', .5],
     [44, 'state', 'hunt'], [44, 'int', .8], [50, 'sting', 'yokai'], [58, 'state', 'hide'], [58, 'int', .2],
-    [66, 'sting', 'shift'], [70, 'state', 'castle'], [70, 'int', .4], [84, 'state', 'escape'], [84, 'int', .8]
+    [66, 'sting', 'shift'], [70, 'state', 'castle'], [70, 'int', .4], [84, 'state', 'escape'], [84, 'int', .8],
+    [100, 'state', 'spy'], [100, 'int', .5], [113, 'int', .95], [121, 'sting', 'braam']
   ];
-  const SEGMENTS = [['explore .3', 2, 18], ['explore .75', 20, 30], ['tension', 32, 44], ['hunt .8', 46, 58], ['hide', 60, 68], ['castle', 72, 84], ['escape', 86, 100]];
+  const SEGMENTS = [['explore .3', 2, 18], ['explore .75', 20, 30], ['tension', 32, 44], ['hunt .8', 46, 58], ['hide', 60, 68], ['castle', 72, 84], ['escape', 86, 100], ['spy .5', 102, 113], ['spy .95', 115, 130], ['mixed session 0-100', 0, 100]];
 
   function kWeight(x, sr) { // ITU-R BS.1770-4 K-weighting (coefficients derived for any sample rate)
     const f0 = 1681.974450955533, G = 3.999843853973347, Q = 0.7071752369554196, K = Math.tan(Math.PI * f0 / sr), Vh = Math.pow(10, G / 20), Vb = Math.pow(Vh, 0.4996667741545416);
@@ -168,7 +169,7 @@
 
   window.scoreOfflineRender = async function (opts) {
     opts = opts || {};
-    const seconds = opts.seconds || 100, sr = 48000, errors = [];
+    const seconds = opts.seconds || 130, sr = 48000, errors = [];
     const off = new OfflineAudioContext(2, seconds * sr, sr);
     Score.init(off, off.destination); const S = Score._debug(true);
     const plan = (opts.plan || TOUR).slice().sort((a, b) => a[0] - b[0]); let pi = 0;
@@ -216,7 +217,7 @@
   const q = new URLSearchParams(location.search);
   if (q.has('offline')) {
     window.addEventListener('error', e => { $('result').textContent += '\nUncaught ' + e.message; });
-    window.scoreOfflineRender({ seconds: +(q.get('seconds') || 100), wav: q.has('wav') }).then(r => {
+    window.scoreOfflineRender({ seconds: +(q.get('seconds') || 130), wav: q.has('wav') }).then(r => {
       const w = r.wav; delete r.wav; $('result').textContent = 'OFFLINE_RESULT ' + JSON.stringify(r);
       if (w) { const p = document.createElement('pre'); p.id = 'wav'; p.textContent = 'WAV_BASE64 ' + w + ' END_WAV'; document.body.appendChild(p); }
       document.body.dataset.done = '1';

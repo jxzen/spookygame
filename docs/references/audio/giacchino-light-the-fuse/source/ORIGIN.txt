@@ -1,0 +1,7 @@
+Title: Light The Fuse, Michael Giacchino (theme by Lalo Schifrin), album "Mission: Impossible - Ghost Protocol" (P) 2012 Paramount Pictures
+URL: https://www.youtube.com/watch?v=x0BWklF1MG4
+Channel: Michael Giacchino (official "Provided to YouTube by Universal Music Group" auto-generated upload)
+Fetched: 2026-11-12 with yt-dlp -f ba -x --audio-format wav (48 kHz stereo, 121.8 s)
+Files: track.wav (git-ignored), track.info.json, spectrogram.png, ebur128-summary.txt, analysis-chroma-tempo.txt (Ana.cs),
+       analysis-metre.txt (../../schifrin-mission-impossible/source/Metre.cs)
+Use: study only. Never ship, never copy melody.
