@@ -1,0 +1,6 @@
+URL: https://www.youtube.com/watch?v=HU7Ga7qTLDU
+Title: Tears in the Rain - Blade Runner (9/10) Movie CLIP (1982) HD (uploader: Movieclips)
+Film: Blade Runner (Ridley Scott, 1982)
+Fetched: 2026-11-12, yt-dlp, section 0-160 s (whole clip), 720p
+Files: clip_0-160.mp4, clip_0-160.info.json, strip_0.2fps.png, frame_26s.png
+Use: study only. Never shipped.

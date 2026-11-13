@@ -116,13 +116,33 @@
       normal = normalize(normal + vec3(q / max(r, 1e-3) * ring * 0.6 * wetMask, 0.0));
     }`;
 
+  /* A fake night-city environment for wet reflections: black sky, a band of
+     dim windows, a few hard lamp smudges and one red smear. PMREM-filtered. */
+  let wetEnv = null; const wetMats = []; let wetWasOn = true;
+  function getWetEnv() {
+    if (wetEnv || !S.renderer) return wetEnv;
+    const c = document.createElement("canvas"); c.width = 1024; c.height = 512; const g = c.getContext("2d");
+    const grd = g.createLinearGradient(0, 0, 0, 512); grd.addColorStop(0, "#000"); grd.addColorStop(.45, "#1a1a1c"); grd.addColorStop(.5, "#2a2a2c"); grd.addColorStop(.56, "#0a0a0a"); grd.addColorStop(1, "#000");
+    g.fillStyle = grd; g.fillRect(0, 0, 1024, 512);
+    for (let i = 0; i < 160; i++) { const v = 40 + Math.random() * 90; g.fillStyle = `rgb(${v},${v},${v})`; g.fillRect(Math.random() * 1024, 150 + Math.random() * 100, 4, 6); }
+    for (let i = 0; i < 9; i++) { const x = Math.random() * 1024; const r = g.createRadialGradient(x, 200, 0, x, 200, 26); r.addColorStop(0, "#fff"); r.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = r; g.fillRect(x - 30, 170, 60, 60); }
+    const rr = g.createRadialGradient(300, 235, 0, 300, 235, 30); rr.addColorStop(0, "#e01010"); rr.addColorStop(1, "rgba(200,0,0,0)"); g.fillStyle = rr; g.fillRect(260, 200, 80, 80);
+    const t = new T.CanvasTexture(c); t.mapping = T.EquirectangularReflectionMapping;
+    const pm = new T.PMREMGenerator(S.renderer); wetEnv = pm.fromEquirectangular(t).texture; pm.dispose(); t.dispose();
+    return wetEnv;
+  }
+
   function patchMaterial(mat, o) {
-    if (!mat || mat.userData.hfxPatched) return;
-    mat.userData.hfxPatched = true;
+    if (!mat) return;
     const wet = o && o.wet ? o.wet : 0;
+    /* already patched: only re-patch to make it wetter */
+    if (mat.userData.hfxPatched && wet <= (mat.userData.hfxWet || 0)) return;
+    if (!mat.userData.hfxPatched) { mat.userData.hfxPrev = mat.onBeforeCompile; mat.userData.hfxPrevKey = mat.customProgramCacheKey; }
+    mat.userData.hfxPatched = true; mat.userData.hfxWet = wet;
+    if (wet && mat.isMeshStandardMaterial && !mat.envMap && getWetEnv()) { mat.envMap = wetEnv; mat.envMapIntensity = 0.35 + 0.65 * wet; mat.userData.hfxWetEnv = mat.envMapIntensity; wetMats.push(mat); }
     const ripple = o && o.ripple ? 1 : 0;
     const isStd = mat.isMeshStandardMaterial;
-    const prev = mat.onBeforeCompile;
+    const prev = mat.userData.hfxPrev;
     mat.onBeforeCompile = function (shader, r) {
       if (prev) prev.call(this, shader, r);
       Object.assign(shader.uniforms, fogU);
@@ -140,7 +160,7 @@
       shader.fragmentShader = fs;
     };
     const key = "hfx" + wet + ripple;
-    const prevKey = mat.customProgramCacheKey ? mat.customProgramCacheKey.bind(mat) : null;
+    const prevKey = mat.userData.hfxPrevKey ? mat.userData.hfxPrevKey.bind(mat) : null;
     mat.customProgramCacheKey = () => key + (prevKey ? prevKey() : "");
     mat.needsUpdate = true;
   }
@@ -409,7 +429,7 @@
         return vec3(texture2D(tDiffuse, uv + dir * ca).r, texture2D(tDiffuse, uv).g, texture2D(tDiffuse, uv - dir * ca).b);
       }
       void main(){
-        float asp = uRes.x / uRes.y; vec2 c = vec2(0.5);
+        float asp = uRes.x / max(uRes.y, 1.0); vec2 c = vec2(0.5);
         vec2 uv = vUv;
         /* sway: slow screen roll + breathing zoom (Amnesia low-sanity tilt), warp on spikes */
         float ang = uSway * uFear * (sin(uTime * 0.63) * 0.014 + sin(uTime * 1.71) * 0.005);
@@ -443,8 +463,8 @@
         vec3 keptRed = mix(grey, vec3(col.r * 1.1, col.g * 0.55, col.b * 0.55), redness * uRedKeep);
         col = mix(col, keptRed, uDesat);
         /* noir contrast: S-curve that deepens with fear */
-        vec3 sc = col * col * (3.0 - 2.0 * clamp(col, 0.0, 1.0));
-        col = mix(col, sc, uContrast * (0.35 + 0.35 * uFear));
+        float ck = uContrast * (0.6 + 0.6 * uFear);
+        col = max(col - 0.012 * ck, 0.0) * (1.0 + 0.3 * ck);              /* crush the floor, lift the key */
         /* phantom: soft standing figure in the periphery, only at fear */
         vec2 pp = (vUv - vec2(uPhX, 0.44)) * vec2(asp, 1.0);
         float body = 1.0 - smoothstep(0.0, 0.05, length(vec2(pp.x * 2.0, max(abs(pp.y + 0.02) - 0.15, 0.0))) - 0.025);
@@ -452,11 +472,11 @@
         col *= 1.0 - max(body, head) * uPhA * uPhantom * 0.9;
         /* vignette with heartbeat, edges bleed dark red with fear (Bunker) */
         float vd = length((vUv - c) * vec2(asp, 1.0));
-        float inner = 0.98 - uFear * 0.38 - uBeat * (0.05 + 0.12 * uFear);
-        float vig = 1.0 - smoothstep(inner - 0.7, inner, vd);
+        float vStart = 0.5 - uFear * 0.3 - uBeat * (0.03 + 0.1 * uFear);
+        float vig = 1.0 - smoothstep(vStart, vStart + 0.6, vd) * (0.45 + 0.5 * uFear);
         float edge = (1.0 - vig) * uVignette;
         col *= mix(1.0, vig, uVignette);
-        col = mix(col, col * vec3(1.0, 0.25, 0.22) + vec3(0.07, 0.0, 0.0) * (0.4 + 0.6 * uBeat), edge * uFear * 0.85);
+        col = mix(col, col * vec3(1.0, 0.25, 0.22) + vec3(0.11, 0.0, 0.0) * (0.35 + 0.65 * uBeat), edge * uFear);
         /* analog static: snow, scanlines, rolling bar. Rises with fear, spikes in bursts */
         lum = dot(col, vec3(0.2126, 0.7152, 0.0722));
         float sAmt = uStatic * clamp(uFear * uFear * 0.32 + uBurst * 0.6, 0.0, 0.85);
@@ -506,7 +526,15 @@
     S.ready = true;
     return HFX;
   }
+  const _db = new T.Vector2();
+  function syncSize() {   /* keeps the post pass matched to the canvas even if the host forgets setSize */
+    S.renderer.getDrawingBufferSize(_db);
+    if (_db.x < 2 || _db.y < 2 || !S.pass) return;
+    const u = S.pass.uniforms.uRes.value;
+    if (u.x !== _db.x || u.y !== _db.y) { const pr = S.renderer.getPixelRatio(); setSize(_db.x / pr, _db.y / pr); }
+  }
   function setSize(w, h) {
+    if (!(w > 1 && h > 1)) return;
     if (S.composer) S.composer.setSize(w, h);
     const pr = S.renderer.getPixelRatio();
     if (S.pass) S.pass.uniforms.uRes.value.set(w * pr, h * pr);
@@ -527,12 +555,12 @@
   const _v = new T.Vector3(), _w = new T.Vector3();
   function update(dt) {
     if (!S.ready) return;
-    dt = Math.min(dt, 0.1);
+    dt = clamp(+dt || 0, 0, 0.1); if (dt === 0) return;
     S.time += dt; limiter.now = S.time;
     limiter.max = S.acc.reduceFlashing ? 1 : 3; limiter.minGap = S.acc.reduceFlashing ? 0.6 : 0.12;
     /* fear: fast attack, slow release; spike when it jumps */
     const up = S.fearTarget > S.fear;
-    S.fear = lerp(S.fear, S.fearTarget, 1 - Math.exp(-dt * (up ? 6 : 1.2)));
+    S.fear = clamp(lerp(S.fear, S.fearTarget, 1 - Math.exp(-dt * (up ? 6 : 1.2))), 0, 1);
     const rate = (S.fear - S.lastFear) / dt; S.lastFear = S.fear;
     if (rate > 1.2 && S.spike < 0.3) spike(clamp(rate / 4, 0.3, 1));
     S.spike *= Math.exp(-dt * 2.8);
@@ -564,6 +592,7 @@
     fogU.hfDensity.value = HFX.fog.density * (1 + HFX.fog.fearDensity * S.fear);
     fogU.hfFalloff.value = HFX.fog.falloff; fogU.hfHeight.value = HFX.fog.height;
     fogU.hfStart.value = HFX.fog.start * (1 - 0.7 * S.fear); fogU.hfMaxOpacity.value = HFX.fog.maxOpacity;
+    if (S.on.wet !== wetWasOn) { wetWasOn = S.on.wet; wetMats.forEach(m => m.envMapIntensity = wetWasOn ? m.userData.hfxWetEnv : 0); }
     fogU.hfNoiseAmt.value = HFX.fog.noise; fogU.wetOn.value = S.on.wet ? 1 : 0; fogU.wetAmount.value = HFX.rain.wet;
     if (S.scene.fog) {
       const fc = S.scene.fog.color; fc.set(HFX.fog.color);
@@ -579,7 +608,7 @@
 
     /* rain lights: the six strongest lamps near the camera + flashlight */
     const cam = S.camera; cam.getWorldPosition(_v);
-    const cand = flickers.filter(f => f !== S.flashFlicker && f.light.isLight && !f.light.isSpotLight || (f.light.isSpotLight && f !== S.flashFlicker))
+    const cand = flickers.filter(f => f !== S.flashFlicker && f.light.isLight)
       .map(f => { f.light.getWorldPosition(_w); return { f, p: _w.clone(), d: _w.distanceTo(_v) }; })
       .sort((a, b) => a.d - b.d).slice(0, MAXL);
     for (let i = 0; i < MAXL; i++) {
@@ -609,6 +638,7 @@
     S.splashes.geometry.setDrawRange(0, Math.floor(S.splashes.geometry.attributes.position.count * clamp(R.intensity, 0, 1)));
 
     /* post uniforms */
+    syncSize();
     if (S.pass) {
       const u = S.pass.uniforms, rm = S.acc.reduceMotion, rf = S.acc.reduceFlashing;
       u.uTime.value = S.time; u.uFear.value = S.fear;
@@ -638,7 +668,7 @@
     EFFECTS, PATTERNS, limiter, state: S, shader: HorrorShader, fogUniforms: fogU,
     fog: { density: 0.06, falloff: 0.28, height: 0, start: 1.5, maxOpacity: 0.97, noise: 0.35, color: 0x16171a,
       fearColor: 0x1d0406, fearTint: 0.45, fearDensity: 0.8, syncBackground: true },
-    rain: { intensity: 1, opacity: 0.55, speed: 11, length: 0.55, wind: [1.2, 0.4], ground: 0, wet: 0.85, lampGain: 0.45, flashGain: 0.22 },
+    rain: { intensity: 1, opacity: 0.55, speed: 11, length: 0.55, wind: [1.2, 0.4], ground: 0, wet: 0.85, lampGain: 0.7, flashGain: 0.3 },
     post: { grain: 1, staticAmt: 1, tear: 1, chroma: 1 },
     init, setFear, spike, update, render, setSize, patch, addFlicker, setFlashlight, addShaft,
     getFear: () => S.fear,

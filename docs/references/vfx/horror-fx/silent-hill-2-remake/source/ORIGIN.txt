@@ -1,0 +1,6 @@
+URL: https://www.youtube.com/watch?v=x5X_GZsiL0k
+Title: SILENT HILL 2 REMAKE Gameplay Walkthrough FULL GAME [PS5 4K 60FPS] - No Commentary (uploader: MKIceAndFire)
+Game: Silent Hill 2 (Bloober Team / Konami, 2024)
+Fetched: 2026-11-12, yt-dlp, sections 1500-1560 s and 3300-3360 s, 720p
+Files: clip_1500-1560.mp4, clip_3300-3360.mp4, *.info.json, strip_1500_0.4fps.png, strip_3300_0.4fps.png
+Use: study only. Never shipped.

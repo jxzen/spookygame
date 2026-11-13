@@ -202,7 +202,7 @@ HorrorFX.patch(mark, { wet: .8, ripple: true });
 HorrorFX.patch(scene, { wet: .25 });     /* walls and the rest: damp, not puddled */
 HorrorFX.setFlashlight(flash);
 const figureNear = () => Math.max(0, 1 - figure.position.distanceTo(camera.position) / 30);
-lamps.forEach(l => { HorrorFX.addFlicker(l.L, { pattern: l.pattern, emissive: l.headMat, proximity: () => Math.max(0, 1 - Math.abs(figure.position.z - l.z) / 9) * figureNear() * 1.2 }); HorrorFX.addShaft(l.L, { opacity: .16 }); });
+lamps.forEach(l => { HorrorFX.addFlicker(l.L, { pattern: l.pattern, emissive: l.headMat, proximity: () => Math.max(0, 1 - Math.abs(figure.position.z - l.z) / 9) * figureNear() * 1.2 }); HorrorFX.addShaft(l.L, { opacity: .14, length: 5.5 }); });
 HorrorFX.addFlicker(vendLight, { pattern: "buzz", emissive: vendMat, fearScale: .7 });
 HorrorFX.addFlicker(redLamp, { pattern: "candle", emissive: lanternMat, fearScale: .3 });
 
@@ -210,7 +210,8 @@ HorrorFX.addFlicker(redLamp, { pattern: "candle", emissive: lanternMat, fearScal
 const LABELS = { heightFog: "Height fog", rain: "Rain", splashes: "Splashes", wet: "Wet sheen", shafts: "Light shafts", grain: "Film grain", static: "Static / snow",
   tear: "Scanline tear", chroma: "Chromatic ab.", vignette: "Vignette", heartbeat: "Heartbeat pulse", radial: "Radial blur", desat: "Desat (keep red)",
   contrast: "Noir contrast", sway: "Screen sway", phantom: "Edge phantom", flicker: "Light flicker" };
-const offList = (Q.get("off") || "").split(",").filter(Boolean);
+let offList = (Q.get("off") || "").split(",").filter(Boolean);
+if (Q.has("only")) { const only = Q.get("only").split(","); offList = HorrorFX.EFFECTS.filter(n => !only.includes(n)); }
 HorrorFX.EFFECTS.forEach(name => {
   const l = document.createElement("label"); const c = document.createElement("input"); c.type = "checkbox"; c.checked = !offList.includes(name) && Q.get("off") !== "all";
   HorrorFX.enable(name, c.checked); c.onchange = () => HorrorFX.enable(name, c.checked); c.dataset.fx = name;
@@ -234,7 +235,7 @@ if (Q.get("light") === "0") flash.visible = false;
 
 /* ---------- input ---------- */
 let yaw = 0, pitch = -.03, drag = false, lx = 0, ly = 0; const keys = {};
-if (Q.has("yaw")) yaw = +Q.get("yaw"); if (Q.has("z")) camera.position.z = +Q.get("z");
+if (Q.has("yaw")) yaw = +Q.get("yaw"); if (Q.has("pitch")) pitch = +Q.get("pitch"); if (Q.has("z")) camera.position.z = +Q.get("z");
 renderer.domElement.addEventListener("pointerdown", e => { drag = true; lx = e.clientX; ly = e.clientY; });
 addEventListener("pointerup", () => drag = false);
 addEventListener("pointermove", e => { if (!drag) return; yaw -= (e.clientX - lx) * .004; pitch = Math.max(-1.2, Math.min(1.2, pitch - (e.clientY - ly) * .004)); lx = e.clientX; ly = e.clientY; });
@@ -247,7 +248,7 @@ addEventListener("resize", () => { renderer.setSize(innerWidth, innerHeight); ca
 let last = performance.now(), t = 0, autoT = 0, fpsAcc = 0, fpsN = 0, maxFlash = 0;
 const spikeAt = Q.has("spike") ? +Q.get("spike") : -1;
 function frame(now) {
-  const dt = Math.min((now - last) / 1000, .1); last = now; t += dt;
+  const dt = Math.max(0, Math.min((now - last) / 1000, .1)); last = now; t += dt;
   /* walk */
   const sp = 2.6 * dt, fx = -Math.sin(yaw), fz = -Math.cos(yaw);
   let mx = (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0), mz = (keys.KeyW ? 1 : 0) - (keys.KeyS ? 1 : 0);
@@ -261,6 +262,7 @@ function frame(now) {
   $("fearBig").textContent = fear.toFixed(2);
   HorrorFX.setFear(fear);
   if (spikeAt >= 0 && t > spikeAt && t - dt <= spikeAt) HorrorFX.spike(1);
+  if (Q.has("hold")) HorrorFX.state.spike = 1;   /* screenshot aid: freeze a spike */
   /* the figure stands where the fog is thickest, closer with fear; it twitches */
   const fz2 = camera.position.z - (5 + (1 - fear) * 30);
   figure.position.set(Math.sin(t * .3) * .4 + .6, 0, fz2); figure.lookAt(camera.position.x, 0, camera.position.z);
@@ -271,6 +273,7 @@ function frame(now) {
   fpsAcc += dt; fpsN++; if (fpsAcc > .5) { $("fps").textContent = (1000 * fpsAcc / fpsN).toFixed(1) + " ms"; fpsAcc = 0; fpsN = 0; }
   const fl = HorrorFX.flashesLastSecond(); maxFlash = Math.max(maxFlash, fl);
   $("flashes").textContent = fl + " (max " + maxFlash + ")"; $("bpm").textContent = Math.round(HorrorFX.bpm) + " bpm";
+  if (Q.has("debug") && Math.floor(t) !== Math.floor(t - dt)) { const u = HorrorFX.state.pass.uniforms; console.log("HFXDBG t=" + t.toFixed(2) + " dt=" + dt.toFixed(3) + " fear=" + HorrorFX.getFear().toFixed(3) + " spike=" + u.uSpike.value.toFixed(3) + " burst=" + u.uBurst.value.toFixed(3) + " res=" + u.uRes.value.x + "x" + u.uRes.value.y + " canvas=" + innerWidth + "x" + innerHeight); }
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);

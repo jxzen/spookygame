@@ -1,0 +1,6 @@
+URL: https://www.youtube.com/watch?v=DPTqgM_C60c
+Title: Amnesia Low Sanity + Monster = ... (uploader: amnesiaPUZZLES)
+Game: Amnesia: The Dark Descent (Frictional Games, 2010)
+Fetched: 2026-11-12, yt-dlp, section 0-47 s (whole video), 720p
+Files: clip_0-47.mp4, clip_0-47.info.json, strip_all_0.5fps.png, strip_6-12s_2fps.png
+Use: study only. Never shipped.

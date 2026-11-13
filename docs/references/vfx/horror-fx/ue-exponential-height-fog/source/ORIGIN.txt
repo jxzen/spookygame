@@ -1,0 +1,5 @@
+URL 1: https://dev.epicgames.com/documentation/en-us/unreal-engine/exponential-height-fog-in-unreal-engine
+  (Epic docs page, fetched 2026-11-12 with WebFetch; property list summarised in page-extract.md. No defaults or formula on the page.)
+URL 2: https://forums.unrealengine.com/t/implementing-exponential-height-fog-in-a-custom-shader/84067
+  (forum post quoting Epic's HeightFogCommon shader, fetched 2026-11-12; quoted lines in page-extract.md)
+Use: study only.

@@ -1,0 +1,6 @@
+URL: https://www.youtube.com/watch?v=afA0M0rO72I
+Title: Stray Dog (1949) Original Trailer [4K] (uploader: HD Retro Trailers)
+Film: Stray Dog / Nora inu (Akira Kurosawa, Toho, 1949)
+Fetched: 2026-11-12, yt-dlp, section 0-181 s (whole trailer), 720p
+Files: clip_0-181.mp4, clip_0-181.info.json, strip_0.2fps.png
+Use: study only. Never shipped.
