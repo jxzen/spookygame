@@ -23,3 +23,4 @@ W10 · FX-01 · visual effects + screen effects · first-of-kind y · library: v
 D6 · 2026-11-12 · Director decisions after wave 1 recorded in docs/macro-design.md; all other open questions default to agent recommendations.
 W11 · probe-04 integration · merged 8 wave-2 branches one at a time, gate PASS after each; integration fixes: monster nav ids, player floor height + yokai lightOut + HUD hidden in title/ending, mission platform/track from level station · verdict pending
 W12 · probe-04 review · director played locally; verdict recorded verbatim in docs/anchors/first-five-minutes/rejected/probe04.md; rules H14-H19 · fixes: board point reachable (d189f5e), review console (90e84d8)
+D7 · 2026-11-13 · score-spec's 'drone never stops' rule overridden by H16 (director: "the low hum feels like a audio bug"); low D now swells per chord (wave3/audio, 7f0475c).
