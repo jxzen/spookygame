@@ -19,7 +19,7 @@ body { margin: 0; background: var(--ink); color: var(--paper); font: 15px/1.5 va
 #intel { font: 500 13px var(--font-mono); color: var(--muted); }
 #status { position: fixed; left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); font: 500 11px var(--font-mono); color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
 #prompt { position: fixed; left: 50%; bottom: 24vh; transform: translateX(-50%); font: 600 15px var(--font-ui); padding: 7px 14px; border: 1px solid var(--paper); background: rgba(0,0,0,.55); white-space: nowrap; }
-#toast { position: fixed; left: 50%; top: 28vh; transform: translateX(-50%); font: 600 italic clamp(18px, 2.6vw, 26px) var(--font-title); text-align: center; opacity: 0; transition: opacity .8s; max-width: 86vw; text-shadow: 0 2px 8px #000; }
+#toast { z-index: 5; position: fixed; left: 50%; top: 28vh; transform: translateX(-50%); font: 600 italic clamp(18px, 2.6vw, 26px) var(--font-title); text-align: center; opacity: 0; transition: opacity .8s; max-width: 86vw; text-shadow: 0 2px 8px #000; }
 #title-text { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 12vh; gap: 8px; text-align: center; }
 #hurt { background: rgba(160,0,10,.55); opacity: 0; transition: opacity .15s; }
 #flash { background: #fff; opacity: 0; }
@@ -67,6 +67,7 @@ button.ghost { background: transparent; color: var(--paper); border: 1px solid #
       <kbd>Mouse</kbd><span>look · <kbd>Right button</kbd> focus the light</span>
       <kbd>F</kbd><span>flashlight · <kbd>E</kbd> interact, hide, leave a hiding spot</span>
       <kbd>Pad</kbd><span>sticks · LT focus · RB light · A interact · B crouch · L3 run</span>
+      <kbd>Tab</kbd><span>read the last intel again</span>
       <kbd>/</kbd><span>review console: jump to any part of the game (type <kbd>/help</kbd>)</span>
     </div>
     <div><button id="begin" type="button">Begin</button></div>
@@ -91,8 +92,26 @@ button.ghost { background: transparent; color: var(--paper); border: 1px solid #
     el: id => document.getElementById(id),
     fade: v => { document.getElementById('fade').style.opacity = v; },
     flash: v => { document.getElementById('flash').style.opacity = v; },
-    toast(label, text, sec) { const t = document.getElementById('toast'); t.textContent = ''; const b = document.createElement('div'); b.style.cssText = 'font:500 11px var(--font-mono);letter-spacing:.25em;color:var(--red);font-style:normal;margin-bottom:4px'; b.textContent = label || ''; t.append(b, document.createTextNode(text)); t.style.opacity = 1; clearTimeout(this._tt); this._tt = setTimeout(() => t.style.opacity = 0, (sec || 4) * 1000); }
+    /* toast(label, text, sec, {story}): shown at least as long as it takes to read (~3.2 words/s + 2.5 s).
+       A story toast (intel) cannot be cut off: later toasts wait in a short queue until it has been readable long enough.
+       Tab re-shows the last story toast. The toast sits above #fade so a fade-out never hides it. */
+    _q: [], _until: 0, _lockUntil: 0, lastStory: null,
+    toast(label, text, sec, o) {
+      o = o || {}; const now = performance.now(), words = String(text || '').split(/\s+/).length;
+      const dur = Math.max(sec || 4, 2.5 + words / 3.2) * 1000;
+      if (o.story) this.lastStory = [label, text, sec];
+      if (now < this._lockUntil && !o.force) { if (this._q.length < 3) this._q.push([label, text, sec, o]); return; }
+      const t = document.getElementById('toast'); t.textContent = ''; t.style.whiteSpace = 'pre-line';
+      const b = document.createElement('div'); b.style.cssText = 'font:500 11px var(--font-mono);letter-spacing:.25em;color:var(--red);font-style:normal;margin-bottom:4px'; b.textContent = label || '';
+      t.append(b, document.createTextNode(text)); t.style.opacity = 1;
+      this._lockUntil = o.story ? now + dur * 0.85 : now + Math.min(dur, 2500);
+      clearTimeout(this._tt); this._tt = setTimeout(() => { t.style.opacity = 0; this._next(); }, dur);
+      clearTimeout(this._lt); this._lt = setTimeout(() => this._next(), this._lockUntil - now + 20);
+    },
+    _next() { if (performance.now() < this._lockUntil || !this._q.length) return; const n = this._q.shift(); this.toast(n[0], n[1], n[2], n[3]); },
+    reread() { if (this.lastStory) { this._q = []; this._lockUntil = 0; this.toast(this.lastStory[0], this.lastStory[1], this.lastStory[2], { story: true, force: true }); } }
   };
+  addEventListener('keydown', e => { if (e.code === 'Tab' && !(e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) { e.preventDefault(); G.ui.reread(); } });
   document.getElementById('begin').addEventListener('click', () => { document.getElementById('card-start').hidden = true; G.emit('begin'); });
   if (G.jump) document.getElementById('card-start').hidden = true;
 

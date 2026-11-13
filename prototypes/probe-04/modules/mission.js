@@ -50,7 +50,7 @@
   function setPhase(p) { M.phase = p; M.t = 0; if (p in OBJ) setObjective(OBJ[p]); }
   function setObjective(s) { M.objective = s; const o = $('objective'); if (o) o.textContent = s; }
   function setIntelHud() { const e = $('intel'); if (e) e.textContent = M.intel ? 'INTEL ' + M.intel + ' / 3' : ''; }
-  function toast(label, text, sec) { const t = $('toast'); if (t) t.style.whiteSpace = 'pre-line'; ui().toast(label, text, sec); }
+  function toast(label, text, sec, o) { const t = $('toast'); if (t) t.style.whiteSpace = 'pre-line'; ui().toast(label, text, sec, o); }
   function after(sec, fn) { timers.push({ at: G.time + sec, fn }); }
   function hud(on) { const h = $('hud'); if (h) h.hidden = !on; }
 
@@ -273,7 +273,7 @@
     if (M.intel > i) return;
     M.intel = i + 1; setIntelHud();
     const it = INTEL[i]; G.emit('intel', { n: i + 1, text: it.text });
-    toast(it.label, it.text, 12);
+    toast(it.label, it.text, 12, { story: true });
     if (drops[i]) { drops[i].visible = false; }
     const d = P.drops[i]; checkpoint = standOff(d.pos, G.player && G.player.pos ? G.player.pos : P.spawn.pos, 1.4);
     if (i === 0) { ckPhase = 'hunt1'; setPhase('hunt1'); G.emit('power-cut');
