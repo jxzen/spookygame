@@ -123,6 +123,23 @@
   /* ---------- modules ---------- */
   G.register = (name, mod) => { mod.name = name; mod.order = mod.order == null ? 100 : mod.order; mod.ok = true; G.modules.push(mod); G.modules.sort((a, b) => a.order - b.order); };
 
+  /** H15: compile every material (and upload textures) for the CURRENT light set, including objects that are hidden now
+   *  (yokai, monster, drop props, the train). Lights keep their effective visibility so the program variants match play.
+   *  Changing the active light count later still recompiles everything: modules switch lights off with intensity 0. */
+  G.prewarm = () => {
+    const t0 = performance.now(), flip = [], lightsOff = [];
+    const effective = new Set(); G.scene.traverseVisible(o => effective.add(o));
+    G.scene.traverse(o => {
+      if (o.isLight) { if (!effective.has(o) && o.visible) { o.visible = false; lightsOff.push(o); } return; }
+      if (!o.visible) { o.visible = true; flip.push(o); }
+      if (o.isMesh && G.renderer.initTexture) for (const m of [].concat(o.material)) for (const k of ['map', 'normalMap', 'roughnessMap', 'emissiveMap', 'alphaMap']) if (m && m[k] && m[k].isTexture) try { G.renderer.initTexture(m[k]); } catch (e) { /* r128 may lack it */ }
+    });
+    try { G.renderer.compile(G.scene, G.camera); if (G.overlay) G.renderer.compile(G.overlay.scene, G.overlay.camera); }
+    catch (e) { console.warn('[core] prewarm compile failed', e); }
+    for (const o of flip) o.visible = false; for (const l of lightsOff) l.visible = true;
+    console.log('[core] prewarm ' + (performance.now() - t0).toFixed(0) + ' ms, ' + flip.length + ' hidden objects compiled');
+  };
+
   async function boot() {
     G.fx = !G.nofx && window.HorrorFX ? window.HorrorFX : null;
     if (G.fx) { try { G.fx.init(G.renderer, G.scene, G.camera); } catch (e) { console.error('[core] HorrorFX.init failed, bypassing', e); G.fx = null; } }
@@ -132,6 +149,8 @@
       catch (e) { m.ok = false; console.error('[module ' + m.name + '] init failed; disabled', e); }
     }
     G.ready = true; G.emit('ready');
+    G.prewarm();
+    G.on('start', () => setTimeout(G.prewarm, 0)); // the title set's lights are gone by now: compile for the play-time light set
     document.body.dataset.ready = '1';
     requestAnimationFrame(frame);
   }

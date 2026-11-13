@@ -400,8 +400,9 @@
     TR.group.rotation.y = Math.atan2(-dir.z, dir.x) + (side < 0 ? 0 : 0);
     if (side < 0) { TR.group.scale.z = -1; } // mirror so the doors face the platform
     if (!TR.track) { TR.track = buildTrack(P0, dir, side, TR.railY);
-      const sl = new THREE.PointLight(0xe8e6e1, 1.6, 34, 1.6); sl.position.copy(anchor).addScaledVector(dir, -6).setY(anchor.y + 5); G.scene.add(sl);
-      const rl = new THREE.PointLight(0xb3121b, 1.4, 26, 1.6); rl.position.copy(anchor).addScaledVector(dir, 14).setY(anchor.y + 4.5); G.scene.add(rl); }
+      // H15: these lights exist from init at intensity 0 (a new light mid-play recompiles every material)
+      const L = platLights(); L.sl.position.copy(anchor).addScaledVector(dir, -6).setY(anchor.y + 5); L.sl.intensity = 1.6;
+      L.rl.position.copy(anchor).addScaledVector(dir, 14).setY(anchor.y + 4.5); L.rl.intensity = 1.4; }
     if (platGltf && !TR.plat) { const pl = platGltf.scene; pl.position.copy(anchor); pl.rotation.y = Math.atan2(-dir.z, dir.x); G.scene.add(pl); TR.plat = pl; }
     TR.sStop = -TR.doorX; TR.state = stopped ? 'open' : 'arrive'; TR.t = stopped ? 99 : 0;
     trainAt(stopped ? TR.sStop : TR.sStop - 260);
@@ -443,7 +444,13 @@
     const m = monGltf.scene; m.position.copy(TR.anchor); m.rotation.y = yawTo(TR.anchor, TR.P0) + Math.PI; // face the train
     m.traverse(o => { if (o.isMesh) { o.frustumCulled = false; o.castShadow = true; } }); G.scene.add(m); TR.mon = m;
     TR.monMixer = new THREE.AnimationMixer(m); const c = monGltf.animations.find(a => /idle/i.test(a.name)) || monGltf.animations[0]; if (c) TR.monMixer.clipAction(c).play();
-    const lamp = new THREE.PointLight(0xb3121b, 2.2, 9, 2); lamp.position.copy(TR.anchor).add(new V(0, 3.2, 0)); G.scene.add(lamp);
+    const lamp = platLights().ml; lamp.position.copy(TR.anchor).add(new V(0, 3.2, 0)); lamp.intensity = 2.2;
+  }
+  let PL = null;
+  function platLights() {
+    if (PL) return PL;
+    const mk = (c, d) => { const l = new THREE.PointLight(c, 0, d, d === 9 ? 2 : 1.6); l.position.set(0, -500, 0); G.scene.add(l); return l; };
+    PL = { sl: mk(0xe8e6e1, 34), rl: mk(0xb3121b, 26), ml: mk(0xb3121b, 9) }; return PL;
   }
   function updateEnding(dt) {
     if (!END.active) return;
@@ -552,6 +559,7 @@
       G.on('game-over', onGameOver);
       G.on('shift-end', onShiftEnd);
       G.on('ready', () => {
+        platLights();
         resolvePoints();
         P.drops.forEach((d, i) => {
           drops.push(makeDropProp(i, d));
