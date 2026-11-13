@@ -14,7 +14,7 @@
   'use strict';
   var THREE = global.THREE;
   var WS = {};
-  WS.version = '0.1.0';
+  WS.version = '0.2.0';
 
   /* ---------- math ---------- */
   WS.clamp = function (v, a, b) { return v < a ? a : v > b ? b : v; };
@@ -148,6 +148,19 @@
     A.wet.connect(d); d.connect(lp); lp.connect(fb); fb.connect(d); lp.connect(A.master);
     return c;
   };
+  /** bind to an AudioContext someone else created (the game's G.audioCtx). Idempotent; safe to call from several modules. */
+  A.bind = function (ctx, gain) {
+    if (!ctx || A.ctx === ctx) return A.ctx;
+    try {
+      A.ctx = ctx; A.buffers = {};
+      A.master = ctx.createGain(); A.master.gain.value = A.muted ? 0 : (gain == null ? .6 : gain); A.master.connect(ctx.destination);
+      var d = ctx.createDelay(1); d.delayTime.value = .27; var fb = ctx.createGain(); fb.gain.value = .38;
+      var lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1800;
+      A.wet = ctx.createGain(); A.wet.gain.value = .35;
+      A.wet.connect(d); d.connect(lp); lp.connect(fb); fb.connect(d); lp.connect(A.master);
+    } catch (e) { A.ctx = null; }
+    return A.ctx;
+  };
   A.setMuted = function (m) { A.muted = m; if (A.master) A.master.gain.value = m ? 0 : .8; };
   function ksBuffer(freq) {
     var key = Math.round(freq * 10); if (A.buffers[key]) return A.buffers[key];
@@ -178,10 +191,22 @@
     g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur); o.connect(g); g.connect(A.master); o.start(t); o.stop(t + dur + .05);
   }
   /** the castle mechanism: a wooden clack plus a low iron thud. */
-  A.clack = function (vol) { if (!A.ctx) return; var t = A.ctx.currentTime; noiseBurst(t, .07, 1100, 3, (vol || .5) * 1.2); thump(t, 48, (vol || .5) * .9, .35); };
+  A.clack = function (vol) { if (!A.ctx) return; var t = A.ctx.currentTime; noiseBurst(t, .07, 1100, 3, (vol || .5) * 1.2); thump(t, 48, (vol || .5) * .9, .35); A.swell((vol || .5) * .09, 1.6); };
+  /** a low swell that rises with a move and dies away (H16: never a steady hum). */
+  A.swell = function (vol, dur) {
+    if (!A.ctx || !A.master) return; var c = A.ctx, t = c.currentTime, d = dur || 1.6;
+    var g = c.createGain(); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(.0002, vol || .05), t + .25); g.gain.exponentialRampToValueAtTime(.0001, t + d);
+    var f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 240;
+    var o1 = c.createOscillator(), o2 = c.createOscillator(); o1.type = 'triangle'; o1.frequency.value = 55; o2.type = 'sawtooth'; o2.frequency.value = 82.4;
+    o1.connect(f); o2.connect(f); f.connect(g); g.connect(A.master); o1.start(t); o2.start(t); o1.stop(t + d + .05); o2.stop(t + d + .05);
+  };
   /** a knock on wood (the thing outside). */
   A.knock = function (vol) { if (!A.ctx) return; var t = A.ctx.currentTime; noiseBurst(t, .05, 420, 2, vol || .7); thump(t, 70, (vol || .7) * .6, .2); };
-  A.drone = function (on) {
+  /** H16 (director, probe 04: "the low hum feels like a audio bug"): the constant drone is retired. drone(true) does nothing;
+   *  the low end now comes only as swells tied to the castle's moves (A.swell, inside A.clack). drone(false) still stops
+   *  an old drone if a lab started one with A.droneLegacy(true). */
+  A.drone = function (on) { if (!on) A.droneLegacy(false); };
+  A.droneLegacy = function (on) {
     if (!A.ctx) return; var c = A.ctx;
     if (on && !A.droneNodes) {
       var g = c.createGain(); g.gain.value = 0; g.gain.linearRampToValueAtTime(.06, c.currentTime + 2); g.connect(A.master);

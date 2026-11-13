@@ -1,0 +1,13 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Shift route check</title>
+<!-- Headless route check for probe-04's world shift: loads core + worldshift only (no player, so the fallback walker runs).
+     Usage: sim.html#jump=shift-street&sim=1   (logs section times to the console)  ·  #jump=shift-tiers&auto=1 to watch the walker -->
+<style>html,body{margin:0;height:100%;background:#0b0b0c;overflow:hidden}#stage{position:fixed;inset:0}</style>
+<div id="stage"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="../../shared/shift.js"></script>
+<script src="../../probe-04/core.js"></script>
+<script>G.ASSETS = '../../assets/';</script>
+<script src="../../probe-04/modules/worldshift.js"></script>
