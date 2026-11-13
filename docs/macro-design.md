@@ -99,3 +99,8 @@ Picked readings: title sequence = Skyfall main titles; environment = Spirited Aw
 5. Spy theme stays secondary to horror.
 6. Static at full fear stays near-blinding.
 Defaults accepted for all other open questions: each agent's recommendation in its report/design doc.
+
+## Decisions after probe 04 (2026-11-13)
+- Monster: "Show references first" — fetch creature-movement references, director picks the feel before any rebuild.
+- World shift: "Also bleed into town" — expand the shift and add small moving-floor moments in town before the bell, as foreshadowing.
+- Feedback verbatim: docs/anchors/first-five-minutes/rejected/probe04.md; rules H14-H19.
