@@ -36,6 +36,14 @@ body { margin: 0; background: var(--ink); color: var(--paper); font: 15px/1.5 va
 kbd { font: 600 12px var(--font-ui); border: 1px solid #555; padding: 1px 5px; color: var(--paper); }
 button { font: 600 15px var(--font-ui); padding: 11px 22px; border: 0; cursor: pointer; background: var(--red); color: #fff; }
 button.ghost { background: transparent; color: var(--paper); border: 1px solid #555; }
+/* review console (press /) */
+#cmd { position: fixed; left: max(16px, env(safe-area-inset-left, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); max-width: 560px; background: var(--panel); border: 1px solid #333; font: 500 13px var(--font-mono); z-index: 10; }
+#cmd input { width: 100%; box-sizing: border-box; padding: 10px 12px; background: #141416; color: var(--paper); border: 0; border-top: 1px solid #333; font: inherit; outline: none; }
+#cmd ul { list-style: none; margin: 0; padding: 6px 0; max-height: 46vh; overflow-y: auto; }
+#cmd li { padding: 3px 12px; display: flex; gap: 12px; color: var(--muted); cursor: pointer; }
+#cmd li b { color: var(--paper); font-weight: 500; min-width: 9.5em; }
+#cmd li.on { background: #222; } #cmd li.on b { color: var(--red); }
+#cmd .msg { padding: 6px 12px; color: var(--red); }
 :focus-visible { outline: 2px solid var(--paper); outline-offset: 2px; }
 </style>
 
@@ -59,10 +67,12 @@ button.ghost { background: transparent; color: var(--paper); border: 1px solid #
       <kbd>Mouse</kbd><span>look · <kbd>Right button</kbd> focus the light</span>
       <kbd>F</kbd><span>flashlight · <kbd>E</kbd> interact, hide, leave a hiding spot</span>
       <kbd>Pad</kbd><span>sticks · LT focus · RB light · A interact · B crouch · L3 run</span>
+      <kbd>/</kbd><span>review console: jump to any part of the game (type <kbd>/help</kbd>)</span>
     </div>
     <div><button id="begin" type="button">Begin</button></div>
   </div>
 </section>
+<div id="cmd" hidden><ul id="cmd-list"></ul><div class="msg" id="cmd-msg" hidden></div><input id="cmd-in" type="text" autocomplete="off" spellcheck="false" aria-label="Review command"></div>
 <section class="card" id="card-end" hidden><div class="inner" id="card-end-inner"></div></section>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -85,6 +95,62 @@ button.ghost { background: transparent; color: var(--paper); border: 1px solid #
   };
   document.getElementById('begin').addEventListener('click', () => { document.getElementById('card-start').hidden = true; G.emit('begin'); });
   if (G.jump) document.getElementById('card-start').hidden = true;
+
+  /* review console (owner: integrator). Press / to open, type a command, Enter. Esc closes.
+     Story commands reload into a mission state via the #jump capture hooks; place commands teleport live and keep the current state. */
+  (function () {
+    const story = [ // [command, #jump value, what it is]
+      ['title', 'title', 'title sequence'], ['street', 'street', 'mission start, the street'], ['drop1', 'drop1', 'first dead drop (letter)'],
+      ['hunt', 'hunt1', 'power cut, first hunt'], ['drop3', 'drop3', 'third dead drop (ema)'], ['bell', 'bell', 'the shrine bell'],
+      ['shift', 'shift-street', 'world shift from the start'], ['stretch', 'shift-stretch', 'shift: stretching hall'], ['fold', 'shift-fold', 'shift: folding room'],
+      ['grid', 'shift-grid', 'shift: the grid'], ['platform', 'platform', 'Platform 1, train arriving'], ['ending', 'ending', 'shinkansen escape'],
+      ['restart', '', 'start over from the Begin card']];
+    const places = { // level coordinates (map x, map y) -> world (x, -y); same as level.js JUMPS
+      start: [60, 1.6, 0], arcade: [57.6, 15.5, .05], yokocho: [68.3, 21, -.08], canal: [82, 35.5, 0], plaza: [57, 66.5, 0],
+      north: [100, 13.5, 0], shrine: [24.6, 90.2, .12], station: [111.5, 71.2, -.22] };
+    const cmds = story.map(([c, j, d]) => ({ c, d, run: () => { location.hash = j ? 'jump=' + j : ''; location.reload(); } }))
+      .concat(Object.keys(places).map(k => ({ c: k, d: 'teleport here (keeps current state)', run: () => tp(k) })))
+      .concat([{ c: 'help', d: 'list commands', run: () => { inp.value = '/'; render(); return true; } }]);
+    const box = document.getElementById('cmd'), inp = document.getElementById('cmd-in'), list = document.getElementById('cmd-list'), msg = document.getElementById('cmd-msg');
+    let sel = 0, shown = [];
+    function tp(k) {
+      const p = places[k], W = G.world;
+      if (!W || !G.player || !G.player.pos) return say('No level loaded.');
+      const x = p[0], z = -p[1], y = typeof W.heightAt === 'function' ? W.heightAt(x, z) || 0 : 0;
+      G.emit('teleport', { pos: new THREE.Vector3(x, y, z), yaw: p[2], pitch: 0.04 });
+    }
+    function say(t) { msg.textContent = t; msg.hidden = false; return true; }
+    function render() {
+      const q = inp.value.replace(/^\//, '').trim().toLowerCase();
+      shown = cmds.filter(o => o.c.startsWith(q)); if (sel >= shown.length) sel = 0;
+      list.textContent = '';
+      shown.forEach((o, i) => { const li = document.createElement('li'); if (i === sel) li.className = 'on';
+        const b = document.createElement('b'); b.textContent = '/' + o.c; const s = document.createElement('span'); s.textContent = o.d;
+        li.append(b, s); li.addEventListener('mousedown', e => { e.preventDefault(); sel = i; exec(); }); list.append(li); });
+    }
+    function open() { box.hidden = false; msg.hidden = true; inp.value = '/'; sel = 0; render(); try { document.exitPointerLock && document.exitPointerLock(); } catch (e) {} setTimeout(() => inp.focus(), 0); }
+    function close() { box.hidden = true; inp.blur(); }
+    function exec() {
+      const q = inp.value.replace(/^\//, '').trim().toLowerCase();
+      const o = cmds.find(x => x.c === q) || shown[sel];
+      if (!o) return say('Unknown command. Type /help.');
+      const keep = o.run(); if (!keep) close();
+    }
+    inp.addEventListener('input', () => { sel = 0; msg.hidden = true; render(); });
+    inp.addEventListener('keydown', e => {
+      e.stopPropagation(); // keep typing out of the game's input (WASD, E, Enter = interact)
+      if (e.key === 'Escape') { e.preventDefault(); close(); }
+      else if (e.key === 'Enter') { e.preventDefault(); exec(); }
+      else if (e.key === 'ArrowDown' || e.key === 'Tab') { e.preventDefault(); sel = (sel + 1) % Math.max(1, shown.length); render(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); sel = (sel - 1 + shown.length) % Math.max(1, shown.length); render(); }
+    });
+    inp.addEventListener('keyup', e => e.stopPropagation());
+    addEventListener('keydown', e => {
+      if (e.key !== '/' || !box.hidden) return;
+      const t = e.target; if (t && (t.tagName === 'TEXTAREA' || t.tagName === 'INPUT')) return; // end-card feedback form
+      e.preventDefault(); e.stopPropagation(); open();
+    }, true);
+  })();
 </script>
 <!-- modules: each optional; order of execution is set by G.register(order) -->
 <script src="modules/player.js" onerror="console.warn('module missing: player')"></script>
