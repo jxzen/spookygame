@@ -10,6 +10,7 @@
   const PHRYG = [2, 3, 5, 7, 9, 10, 0];          // D Phrygian
   const AEOL = [2, 4, 5, 7, 9, 10, 0];           // D Aeolian (escape)
   const MIYAKO = [2, 3, 7, 9, 10];               // D miyako-bushi (koto), subset of PHRYG
+  const SPY = [2, 3, 4, 5, 7, 9, 10, 0];         // spy escape: D Aeolian, plus the Phrygian Eb that lives only in its Eb/D bar
   // t = chord pitch classes (root first), b = bass pc override (pedal)
   const CH = {
     'Dm': { t: [2, 5, 9] }, 'Bb': { t: [10, 2, 5] }, 'Gm': { t: [7, 10, 2] }, 'Eb': { t: [3, 7, 10] },
@@ -23,6 +24,7 @@
     hide: { bpm: 72, prog: [['Dm/D', 2], ['Eb/D', 1], ['Dm/D', 1]], scale: PHRYG, koto: MIYAKO, pad: 'harm', pedal: true, floor: 0 },
     castle: { bpm: 48, prog: [['Dm/D', 1], ['Bbm/D', 1], ['Eb/D', 1], ['Dm/D', 1]], scale: PHRYG, koto: MIYAKO, pad: 'legato', pedal: true, floor: 0.3 },
     escape: { bpm: 144, prog: [['Dm', 1], ['Bb', 1], ['F', 1], ['C', 1]], scale: AEOL, koto: null, pad: 'legato', pedal: false, floor: 0.6 },
+    spy: { bpm: 144, bpb: 5, prog: [['Dm', 2], ['Eb/D', 1], ['Dm', 1], ['Bb', 1], ['C', 1], ['Dm', 2]], scale: SPY, koto: null, pad: 'legato', pedal: false, floor: 0.4 },
     silent: { bpm: 72, prog: [['Dm/D', 4]], scale: PHRYG, koto: MIYAKO, pad: 'none', pedal: true, floor: 0 }
   };
   // Leitmotif "Kage": [beatOffset, midi, durBeats, bendSemis(optional, from grace)] over Dm Dm Bb Bb (4/4)
@@ -32,6 +34,14 @@
   // Retrograde of LEIT for the castle (beat positions mirrored inside 12 beats)
   const LEIT_RETRO = LEIT.map(([b, m, d]) => [13 - b - d, m, d]).sort((a, b) => a[0] - b[0]);
   const THREAT = [[0, 0, .5], [.5, 7, .5], [1, 1, 2]];   // D, A, Eb (semitones above a D)
+  // Spy (heroic) Kage, 5/4, 8 bars = 40 beats over Dm Dm Eb/D Dm Bb C Dm Dm. Head A-D kept and pushed on up to F and A;
+  // the Eb>D cadence lands in the Eb/D bar; the tail D-Bb-A-Bb is kept over Bb; the bVII (C) lifts to G; ends on a long high D.
+  const LEIT_SPY = [[0, 69, 1.5], [1.5, 74, 1.5], [3, 77, 2], [5, 81, 3], [8, 77, 1], [9, 74, 1], [10, 75, 1.5], [11.5, 74, 3.5],
+    [20, 74, 1], [21, 70, 1], [22, 69, 1], [23, 70, 2], [25, 72, 1], [26, 76, 1], [27, 79, 3], [30, 81, 2], [32, 86, 7]];
+  // 10-eighth ostinato for one 5/4 bar, grouped 2+3+2+3 (accents on eighths 0, 2, 5, 7; two off-beat accents give the bar its shape): semitones above the chord's low root
+  const SPY_BASS = [0, 0, 12, 0, 0, 7, 0, 10, 0, 12];
+  const SPY_ACC = [1, 0, 1, 0, 0, 1, 0, 1, 0, 0];
+  const KEYS = { escape: 'D Aeolian (escape lift)', spy: 'D Aeolian + Phrygian Eb/D bar (spy escape, 5/4)' };
 
   /* ---------- engine state ---------- */
   let ctx = null, S = null;
@@ -63,6 +73,8 @@
     // buses
     S.padF = filt('lowpass', 900, 0.5); S.padF.connect(bus('pad', 0.0, 0.6)); S.padIn = S.padF;
     bus('bass', 0.55, 0.25); bus('koto', 1.1, 0.55); bus('spicc', 0.5, 0.3); bus('perc', 0.9, 0.12); bus('fx', 0.7, 0.6); bus('drone', 0.0, 0.3);
+    bus('brass', 0.5, 0.35); bus('lead', 0.55, 0.45); bus('kit', 0.7, 0.08); // spy cue
+    S.base = {}; S.layer = {}; for (const k in S.bus) { S.base[k] = S.bus[k].gain.value; S.layer[k] = 1; }
     // the drone that never stops: D1 + D2, filtered
     const dl = filt('lowpass', 260, 0.7); dl.connect(S.bus.drone);
     [[mtof(26), 'sine', .5], [mtof(38), 'sawtooth', .18], [mtof(38) * 1.003, 'sawtooth', .18], [mtof(50), 'triangle', .08]].forEach(([f, ty, v]) => { const o = osc(ty, f), g = gain(v); o.connect(g); g.connect(dl); o.start(); });
@@ -146,6 +158,44 @@
   function cluster(ms, t, dur, v) { for (const m of ms) { const g = gain(0), lp = filt('lowpass', 1800); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + dur * .6); g.gain.linearRampToValueAtTime(0, t + dur);
     for (const dc of [-9, 9]) { const o = osc('sawtooth', mtof(m) * Math.pow(2, dc / 1200)); o.connect(lp); o.start(t); o.stop(t + dur + .05); } lp.connect(g); g.connect(S.bus.fx); log('cluster', t, m); } }
 
+  /* ---------- spy-cue instruments (all synthesis) ---------- */
+  function pluckBass(m, t, dur, v) { // picked electric bass: saw + square, filter snaps shut
+    const g = gain(0), lp = filt('lowpass', 1400, 4);
+    lp.frequency.setValueAtTime(1600, t); lp.frequency.exponentialRampToValueAtTime(220, t + dur * .8);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + .004); g.gain.exponentialRampToValueAtTime(v * .35, t + dur * .5); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    for (const [ty, k] of [['sawtooth', 1], ['square', .5]]) { const o = osc(ty, mtof(m) * k); o.connect(lp); o.start(t); o.stop(t + dur + .02); }
+    lp.connect(g); g.connect(S.bus.bass); log('bass', t, m);
+  }
+  function mutedKoto(m, t, v) { // the koto, palm-muted: a Karplus-Strong pluck choked after ~0.14 s
+    const k = ksBuffer(m), src = ctx.createBufferSource(); src.buffer = k.b; src.playbackRate.value = k.rate;
+    const g = gain(0), hp = filt('highpass', 180), lp = filt('lowpass', 3200);
+    g.gain.setValueAtTime(v, t); g.gain.setTargetAtTime(0, t + .06, .045);
+    src.connect(hp); hp.connect(lp); lp.connect(g); g.connect(S.bus.koto); src.start(t); src.stop(t + .4); log('koto', t, m);
+  }
+  function brassStab(ms, t, dur, v, swell) { // brass-like: detuned saws, a fast filter blat, short or swelled
+    for (const m of ms) {
+      const g = gain(0), lp = filt('lowpass', 600, 1.2);
+      if (swell) { lp.frequency.setValueAtTime(400, t); lp.frequency.linearRampToValueAtTime(3200, t + dur * .9); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + dur * .9); g.gain.linearRampToValueAtTime(0, t + dur + .05); }
+      else { lp.frequency.setValueAtTime(3600, t); lp.frequency.exponentialRampToValueAtTime(700, t + dur); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + .012); g.gain.setValueAtTime(v, t + dur * .6); g.gain.exponentialRampToValueAtTime(.0001, t + dur + .08); }
+      for (const dc of [-8, 0, 8]) { const o = osc('sawtooth', mtof(m) * Math.pow(2, dc / 1200)); o.connect(lp); o.start(t); o.stop(t + dur + .12); }
+      lp.connect(g); g.connect(S.bus.brass); log('brass', t, m);
+    }
+  }
+  function leadVoice(m, t, dur, v) { // the leitmotif's horn: saw + triangle, delayed vibrato, swelled attack
+    const env = gain(0), lp = filt('lowpass', 2600, .7), end = t + dur + .35, nodes = [];
+    env.gain.setValueAtTime(0, t); env.gain.linearRampToValueAtTime(v, t + .05); env.gain.setValueAtTime(v, t + dur); env.gain.linearRampToValueAtTime(0, t + dur + .3);
+    const vib = osc('sine', 5.2), vg = gain(0); vg.gain.setValueAtTime(0, t); vg.gain.linearRampToValueAtTime(mtof(m) * .006, t + Math.min(dur, .9)); vib.connect(vg); vib.start(t); vib.stop(end); nodes.push(vib);
+    for (const [ty, dc, k] of [['sawtooth', -5, .6], ['sawtooth', 5, .6], ['triangle', 0, 1]]) { const o = osc(ty, mtof(m) * Math.pow(2, dc / 1200)), og = gain(k); vg.connect(o.frequency); o.connect(og); og.connect(lp); o.start(t); o.stop(end); nodes.push(o); }
+    lp.connect(env); env.connect(S.bus.lead); S.voices.push({ env, nodes, end }); log('lead', t, m);
+  }
+  function kick(t, v) { const o = osc('sine', 110), g = gain(0); o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(45, t + .09);
+    g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.0001, t + .28); o.connect(g); g.connect(S.bus.kit); o.start(t); o.stop(t + .3); }
+  function snare(t, v) { const n = ctx.createBufferSource(); n.buffer = S.noise; const bp = filt('bandpass', 1900, .8), g = gain(0);
+    g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.0001, t + .16); n.connect(bp); bp.connect(g); g.connect(S.bus.kit); n.start(t, S.rnd()); n.stop(t + .18);
+    const o = osc('triangle', 190), og = gain(0); og.gain.setValueAtTime(v * .5, t); og.gain.exponentialRampToValueAtTime(.0001, t + .07); o.connect(og); og.connect(S.bus.kit); o.start(t); o.stop(t + .08); }
+  function hat(t, v) { const n = ctx.createBufferSource(); n.buffer = S.noise; const hp = filt('highpass', 7000, .7), g = gain(0);
+    g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.0001, t + .035); n.connect(hp); hp.connect(g); g.connect(S.bus.kit); n.start(t, S.rnd()); n.stop(t + .05); }
+
   /* ---------- harmony helpers ---------- */
   function nearest(pc, ref, lo, hi) { let best = null; for (let m = lo; m <= hi; m++) if (((m % 12) + 12) % 12 === pc && (best === null || Math.abs(m - ref) < Math.abs(best - ref))) best = m; return best; }
   function voiceLead(pcs) {
@@ -164,7 +214,7 @@
     const padV = st.pad === 'none' ? 0 : st.pad === 'harm' ? 0.45 : 0.6 + 0.6 * I;
     S.bus.pad.gain.setTargetAtTime(padV, t, tc);
     S.padF.frequency.setTargetAtTime(st.pad === 'harm' ? 6000 : 700 + 2600 * I * I, t, tc);
-    S.bus.drone.gain.setTargetAtTime(S.state === 'escape' ? 0.05 : S.state === 'hide' ? 0.12 : st.pedal ? 0.2 : 0.14, t, tc);
+    S.bus.drone.gain.setTargetAtTime(S.state === 'escape' ? 0.05 : S.state === 'spy' ? 0.08 : S.state === 'hide' ? 0.12 : st.pedal ? 0.2 : 0.14, t, tc);
     S.hum.gain.setTargetAtTime(S.state === 'castle' ? 0.05 : 0, t, hard ? 0.01 : 1.2);
   }
 
@@ -187,7 +237,7 @@
     let st = STATES[S.state];
     // pending state: bar line, or next beat for 'beat'-quantised targets
     if (S.pending && (S.beat === 0 || S.pending.quant === 'beat')) { enterState(S.pending.name, t); S.pending = null; st = STATES[S.state]; }
-    const spb = 60 / st.bpm, I = effI(), bpb = 4;
+    const spb = 60 / st.bpm, I = effI(), bpb = st.bpb || 4;
     const [cname, cbars] = st.prog[S.step];
     if (S.beat === 0 && S.barInChord === 0) { S.chordName = cname; startChord(t, cbars * bpb * spb, spb); }
     S.events.push({ t, type: 'beat', state: S.state, chord: S.chordName, bar: S.bar, beat: S.beat, bpm: st.bpm, cycle: S.cycle, I });
@@ -198,13 +248,14 @@
   }
   function advance() {
     const st = STATES[S.state]; S.next += 60 / st.bpm; S.beat++;
-    if (S.beat >= 4) { S.beat = 0; S.bar++; S.barInChord++; if (S.barInChord >= st.prog[S.step][1]) { S.barInChord = 0; S.step++; if (S.step >= st.prog.length) { S.step = 0; S.cycle++; } } }
+    if (S.beat >= (st.bpb || 4)) { S.beat = 0; S.bar++; S.barInChord++; if (S.barInChord >= st.prog[S.step][1]) { S.barInChord = 0; S.step++; if (S.step >= st.prog.length) { S.step = 0; S.cycle++; } } }
   }
   function startChord(t, dur, spb) {
     const st = STATES[S.state], c = chord(), I = effI();
     if (st.pad === 'none') return;
     if (st.pad === 'harm') { padVoice(86, t, dur, 0.05, 'harm', spb); padVoice(81, t, dur, 0.04, 'harm', spb); if (S.chordName === 'Eb/D') padVoice(87, t, dur, 0.03, 'harm', spb); return; }
-    const v = voiceLead(c.t), vol = st.pad === 'trem' ? 0.07 : 0.065;
+    const v = voiceLead(c.t), vol = st.pad === 'trem' ? 0.07 : S.state === 'spy' ? 0.04 : 0.065;
+    if (S.state === 'spy') { v.forEach(m => padVoice(m, t, dur, vol, 'legato', spb)); return; } // the ostinato is the spy cue's bass
     v.forEach(m => padVoice(m, t, dur, vol, st.pad, spb));
     if (I >= 0.6) v.forEach(m => padVoice(m + 12, t, dur, 0.035 * (I - 0.4) * 2.5, st.pad, spb)); // violins double
     const bpc = c.b != null ? c.b : c.t[0], bm = nearest(bpc, S.lastBass, 33, 45);
@@ -252,8 +303,39 @@
       for (let h = 0; h < 2; h++) spicc(pat[(beat * 2 + h) % 4], t + h * spb / 2, beat === 0 && h === 0 ? .22 : .13);
       if (beat === 0 && bar % 4 === 0 && I >= 0.6) braam(nearest(root, 38, 33, 44), t, .3);
       if (beat % 2 === 0) thump(t, .45, true);
-    }
+    } else if (name === 'spy') spyBeat(t, spb, I, c, root);
   }
+  // Spy escape cue (5/4, 144 BPM). The engine (bass + kit + muted koto) never stops once the cue starts; brass and the
+  // leitmotif enter and leave above it by intensity. Groups 2+3+2+3 eighths.
+  function spyBeat(t, spb, I, c, root) {
+    const beat = S.beat, cb = S.bar % 8, e8 = spb / 2, lowRoot = nearest(c.b != null ? c.b : root, 38, 36, 47);
+    for (let h = 0; h < 2; h++) {
+      const e = beat * 2 + h, te = t + h * e8, acc = SPY_ACC[e];
+      // bass ostinato; over Eb/D the D pedal leans on Eb (the horror score's dread note, now as drive)
+      let off = SPY_BASS[e];
+      if (S.chordName === 'Eb/D') off = [0, 0, 12, 0, 0, 1, 0, 12, 1, 0][e];
+      else if (off === 10 && !SPY.includes((lowRoot + 10) % 12)) off = 7;
+      pluckBass(lowRoot + off, te, e8 * (acc ? 1.7 : 0.9), acc ? .4 : .17);
+      // kit: kick on groups 1 and 3, snare on groups 2 and 4, hats on every eighth (density by intensity)
+      if (e === 0) kick(te, .75 + .2 * I); else if (e === 5) kick(te, .5 + .2 * I);
+      if (I >= .45 && (e === 2 || e === 7)) snare(te, .22 + .14 * I);
+      if (I >= .8 && e === 9) snare(te, .1);
+      if (acc || I >= .35) hat(te, acc ? .13 : .035);
+      // muted koto ostinato on chord tones (the Japanese thread under the spy cue)
+      const tones = []; for (let m = 62; m <= 84 && tones.length < 4; m++) if (c.t.includes(m % 12)) tones.push(m);
+      if (I >= .3) mutedKoto(tones[[0, 1, 2, 1, 0, 2, 1, 3, 2, 1][e]], te, acc ? .42 : .3);
+      // brass stabs on the two off-beat accents (eighths 5 and 7) every bar from 0.5
+      if (I >= .5 && (e === 5 || e === 7) && !(cb === 1 || cb === 7) ) brassStab(voiceLead(c.t).map(m => m + 12 > 79 ? m : m + 12), te, e === 5 ? .16 : .26, .05 + .03 * I);
+    }
+    if (I >= .65 && cb === 4 && beat === 2) brassStab([60, 64, 67], t, 4.5 * spb, .045, true); // swell from the Bb bar into C
+    if (cb === 3 && beat === 0 && I >= .5) for (const [b, m, d] of [[0, 62, .5], [.5, 69, .5], [1, 74, 1.5]]) brassStab([m, m + 12], t + b * spb, d * spb * .9, .07); // brass answer: D-A-D
+    if (cb === 0 && beat === 0) {
+      if (I >= .6) { playLineLead(LEIT_SPY, t, spb, 0, .1); if (I >= .8) playLineLead(LEIT_SPY, t, spb, -12, .06); }
+      if (I >= .85) braam(38, t, .3);
+    }
+    if (I >= .8 && cb === 7 && beat === 4) for (let k = 0; k < 4; k++) snare(t + k * spb / 4, .08 + .04 * k); // fill into the next cycle
+  }
+  function playLineLead(line, t0, spb, base, v) { for (const [b, m, d] of line) leadVoice(m + base, t0 + b * spb, d * spb * .92, v); }
   function fireSting(name, t, spb) {
     const c = chord(), root = c.t[0];
     S.events.push({ t, type: 'sting', name });
@@ -278,8 +360,8 @@
       if (!S || !Score.STINGS.includes(name)) return;
       if (name !== 'shift') { S.stings.push({ name, at: 0 }); return; }
       // shift lands on a bar line at least 1 s away; the noise riser starts now and peaks on it
-      const spb = 60 / STATES[S.state].bpm, now = nowT();
-      let at = S.next + ((4 - S.beat) % 4) * spb; if (at - now < 1) at += 4 * spb;
+      const st = STATES[S.state], spb = 60 / st.bpm, bpb = st.bpb || 4, now = nowT();
+      let at = S.next + ((bpb - S.beat) % bpb) * spb; if (at - now < 1) at += bpb * spb;
       noiseHit(now + 0.02, at - now - 0.02, 150, 5000, .22);
       S.stings.push({ name, at });
     },
@@ -296,11 +378,17 @@
     getInfo() {
       if (!S) return null; const t = nowT(); let e = null;
       for (const ev of S.events) if (ev.type === 'beat' && ev.t <= t + 0.005) e = ev;
-      return { state: e ? e.state : S.state, pending: S.pending && S.pending.name, chord: e ? e.chord : S.chordName, bar: e ? e.bar + 1 : 0, beat: e ? e.beat + 1 : 0, bpm: e ? e.bpm : STATES[S.state].bpm, intensity: +S.I.toFixed(2), key: (e ? e.state : S.state) === 'escape' ? 'D Aeolian (escape lift)' : 'D Phrygian; koto D miyako-bushi' };
+      return { state: e ? e.state : S.state, pending: S.pending && S.pending.name, chord: e ? e.chord : S.chordName, bar: e ? e.bar + 1 : 0, beat: e ? e.beat + 1 : 0, bpm: e ? e.bpm : STATES[S.state].bpm, intensity: +S.I.toFixed(2), key: KEYS[e ? e.state : S.state] || 'D Phrygian; koto D miyako-bushi', metre: (STATES[e ? e.state : S.state].bpb || 4) + '/4',
+        layers: Object.keys(S.layer).filter(k => S.layer[k] !== 1).map(k => k + ' x' + S.layer[k]).join(', ') || 'all at 1' };
+    },
+    /** scale one layer by v (0..1), e.g. setLayer('koto', .2) while another koto plays. Layers: bass koto spicc perc fx brass lead kit (pad and drone follow the state mix) */
+    setLayer(name, v) {
+      if (!S || !S.bus[name] || name === 'pad' || name === 'drone') return; v = Math.max(0, Math.min(1, +v || 0));
+      if (S.layer[name] === v) return; S.layer[name] = v; S.bus[name].gain.setTargetAtTime(S.base[name] * v, nowT(), 0.25);
     },
     stop() { if (!S) return; S.running = false; releaseVoices(nowT()); S.bus.drone.gain.setTargetAtTime(0, nowT(), .3); S.hum.gain.setTargetAtTime(0, nowT(), .3); },
     _debug(on) { if (S) { S.debug = !!on; S.notes = []; } return S; },
-    _harmony: { CH, STATES, PHRYG, AEOL, MIYAKO, PCN }
+    _harmony: { CH, STATES, PHRYG, AEOL, MIYAKO, SPY, PCN }
   };
   window.Score = Score;
 })();

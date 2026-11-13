@@ -1,4 +1,4 @@
-# Score spec: mission 1 (MUSIC-01, DRAFT v0.1, 2026-11-12)
+# Score spec: mission 1 (MUSIC-01, DRAFT v0.2, 2026-11-12; v0.2 adds the 'spy' escape cue, section 9, brief W2-AUDIO)
 
 Director, probe 03: "good but needs to actually go together / be coherent. currently feels disconnected as there is no chord progression or obvious connection between what the instruments are doing. find a good japanese horror soundtrack to use as a reference".
 House rules: H6 (strings plus koto), H7 (extra epic). Anchor: "Paul's Dream" (ominous orchestral base).
@@ -33,6 +33,7 @@ Every instrument reads the same transport (tempo, bar, beat) and the same curren
 | hide | 72 (4/4) | Dm(2) Eb/D Dm | D pedal | string harmonics only; heartbeat at 72 = the tempo; rare koto pulls into pitch |
 | castle (world shift) | 48 (4/4) | Dm Bbm/D Eb/D Dm | D pedal + hum tuned to D | Db (from Bbm) is the only out-of-key note: "wrong world"; retrograde leitmotif |
 | escape | 144 (4/4) | Dm Bb F C (1 each) | roots | Aeolian lift; leitmotif in violins plus koto; driving eighths |
+| spy (shinkansen ending) | 144 (**5/4**) | Dm(2) Eb/D Dm Bb C Dm(2) | picked-bass ostinato | see section 9 |
 
 Tempo relationships: 48 : 72 : 144 = 2 : 3 : 6. Hunt and escape are explore's tempo doubled. The castle is two-thirds of explore (one castle beat = 1.5 explore beats).
 
@@ -69,3 +70,25 @@ Hunt floors intensity at 0.5 and escape at 0.6.
 
 ## 8. What not to copy
 No melodies, arpeggio patterns, drum patterns or recognisable motifs from the references. Only the mechanisms listed in each `hints.md`. The leitmotif and threat motif above are original to this project.
+
+## 9. Spy escape cue: state 'spy' (W2-AUDIO, the shinkansen ending)
+Director: "end with escape on a japanese shinkansen bullet train with good spy music." and "the spy theme may not be as emphasized as the horror theme".
+References, measured (mechanisms only): `docs/references/audio/schifrin-mission-impossible` (5-beat bars measured, G pedal ostinato, LRA 6.2 LU) and `giacchino-light-the-fuse` (ostinato alone for 13 s before the orchestra; the top drops out at 68-75 s while the engine runs; D-Eb lean before the tonic).
+Homage limits (docs/homage.md): no Bond melody, no 5-#5-6-#5 vamp, no surf-guitar riff; no Mission: Impossible melody or bass riff either.
+
+| What | Value | Why |
+|---|---|---|
+| Tempo, metre | 144 BPM, **5/4** (5 beats per bar; the engine now supports `bpb` per state) | Schifrin's odd bar (measured). 144 = hunt and escape tempo, so the ending sits on the horror score's own fast clock |
+| Grouping | 10 eighths as **2+3+2+3** (accents on eighths 0, 2, 5, 7; two off-beat accents) | Gives the bar its shape. Deliberately not the 3+3+2+2 of the Schifrin theme (recall) |
+| Key | D: Aeolian (E natural from the escape lift) plus one Phrygian bar, Eb/D | Same key centre as the whole score |
+| Progression | Dm(2) Eb/D Dm Bb C Dm(2), one 8-bar cycle (16.7 s) | The Eb/D bar is the horror score's dread chord, now driven; Bb and C are the escape's bright side |
+| Engine (never stops) | Picked synth bass ostinato (root, octave, fifth, b7; over Eb/D the D pedal leans on Eb), kit (kick on groups 1 and 3, snare on 2 and 4, hats), muted koto ostinato on chord tones | Schifrin and Giacchino: one ostinato carries everything. The koto keeps the Japanese thread |
+| Above the engine | Brass-like stabs on the off-beat accents (rest in bars 2 and 8), a brass answer D-A-D in bar 4, a brass swell from Bb into C | Giacchino: drop the top, keep the engine |
+| Leitmotif | Kage, heroic, on a horn-like lead, once per cycle: head A-D kept and carried up to F and A; the Eb>D cadence lands in the Eb/D bar; the D-Bb-A-Bb tail over Bb; C lifts to G; ends on a long high D. Octave-lower doubling from 0.8 | The spy's own theme, stated in the spy's own register for the first time |
+
+Intensity layers (floor 0.4): 0.3 muted koto · 0.35 all hats · 0.45 snare · 0.5 brass stabs and answer · 0.6 leitmotif · 0.65 brass swell · 0.8 lead doubling, ghost snare, fill into the next cycle · 0.85 braam on the cycle downbeat.
+In the game (`modules/audio.js`) intensity climbs from 0.45 to 1.0 over 30 s after 'ending', so the train "gathers speed": engine first, leitmotif from about 8 s.
+
+**Horror first, spy second.** Spy plays only in the ending. It keeps the drone (quieter, 0.08), the koto and the Eb/D bar, so it sounds like the same score breaking into daylight, not a different soundtrack. Its loudness sits about 2 LU above the mixed horror session, below hunt's peaks in short-term range.
+
+Measured 2026-11-12, lab offline tour (now 130 s, spy at 100-130 s, with a braam sting at 121 s): every earlier segment is unchanged (explore .3 -21.6, explore .75 -17.0, tension -18.5, hunt -16.0, hide -26.7, castle -19.1, escape -15.3; mixed session 0-100 s -18.0 LUFS). Spy at 0.5: -17.6 LUFS; spy at 0.95: -16.0 LUFS. Whole 130 s: -17.6 LUFS integrated, true peak -2.54 dBTP. 884 notes logged, 0 outside the state's scale; all stings on the beat. A separate 40 s spy render measures 142-144 BPM and D minor (Krumhansl .89), with the 5-beat lag the strongest bar lag in the low, mid and full bands (0.44-0.61 against 0.23-0.40 at 4 beats; Metre.cs, Smooth = 2).

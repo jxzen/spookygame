@@ -1,0 +1,8 @@
+Title: Mission: Impossible, Lalo Schifrin, album "Music From Mission: Impossible" (P) 1967 Geffen Records
+URL: https://www.youtube.com/watch?v=O07WucFwdq8
+Channel: Lalo Schifrin - Topic (official "Provided to YouTube by Universal Music Group" auto-generated upload)
+Fetched: 2026-11-12 with yt-dlp -f ba -x --audio-format wav (48 kHz stereo, 152.8 s)
+Files: track.wav (git-ignored), track.info.json, spectrogram.png (ffmpeg showspectrumpic, log freq 20 Hz-6 kHz), ebur128-summary.txt,
+       analysis-chroma-tempo.txt (../../yamaoka-promise-reprise/source/Ana.cs, 8 s windows),
+       analysis-metre.txt (Metre.cs in this folder: per-band onset autocorrelation and bar-lag ratios; a peak at k beats means k-beat bars)
+Use: study only. Never ship, never copy the melody or the bass riff.
