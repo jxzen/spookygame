@@ -1,0 +1,5 @@
+Half-Life: Alyx (Valve, 2020), chapters 1-2 gameplay, no commentary (CaleoGaming).
+URL: https://www.youtube.com/watch?v=ILMZK_Hhyl8  ("Half-Life: Alyx - Chapter 1 & 2 - Full Gameplay Walkthrough (No Commentary)", 53:48)
+Retrieved: 2026-11-13, three 4-minute segments, video only, <=360p: seg-1600.webm (16:00-20:00), seg-2400.webm (24:00-28:00), seg-3800.webm (38:00-42:00). Git-ignored.
+Derived: sheet-seg-*.jpg (8 s per tile; tile timestamps are segment-relative: add the segment start), frame-2504-rails-lead.jpg, frame-3816-lit-car-end.jpg, frame-4136-pipe-to-lit-end.jpg.
+Use: private study only.

@@ -1,0 +1,597 @@
+00:00:02 hi my name is Gabe Newell and welcome to
+00:00:04 halflife Alex to say this product was a
+00:00:07 challenge would be an understatement
+00:00:08 it's our first Half-Life title in over
+00:00:10 10 years and it's our first one in
+00:00:13 virtual reality in addition to it being
+00:00:16 a great VR experience that still felt
+00:00:17 like a Half-Life game we wanted halflife
+00:00:20 Alex to serve players who've been
+00:00:21 waiting to find out what happens after
+00:00:23 episode 2 and at the same time provide
+00:00:26 an on-ramp to anyone who hasn't played a
+00:00:28 halflife game at all ultimately whether
+00:00:31 we succeeded in any of that is up to you
+00:00:33 to decide but hopefully this commentary
+00:00:36 mode will give you some insight into the
+00:00:38 set of problems we faced and how we
+00:00:40 chose to tackle them to listen to a
+00:00:43 commentary node pick up the floating
+00:00:45 hologram of a radio headset in front of
+00:00:47 you and simply put it on your head once
+00:00:49 you're done listening to the commentary
+00:00:51 you can take the radio headset off or
+00:00:54 simply put on the next one please let me
+00:00:56 know what you think I can be reached at
+00:00:58 gab Ben at Val
+00:01:00 software.com while I'm unable to reply
+00:01:02 to all the emails I receive I do read
+00:01:04 them all and they're a critical part of
+00:01:07 the feedback we use to evaluate our work
+00:01:10 thanks and have
+00:01:13 fun as in the case of any halflife game
+00:01:16 the first hour of Alex must convey a lot
+00:01:19 of information to the player hopefully
+00:01:21 in a natural and entertaining way
+00:01:23 players need to know who they are where
+00:01:25 they are what kind of world they're in
+00:01:28 who the other important characters and
+00:01:29 factions are and so on at the same time
+00:01:32 they need to learn how to actually play
+00:01:34 the game how do they move what can they
+00:01:36 interact with and how what should they
+00:01:39 be trying to do Etc figuring out exactly
+00:01:42 what information we would try to convey
+00:01:44 in these first two levels and how it
+00:01:46 would be conveyed took us over 2 years
+00:01:48 of play testing it's tempting to try and
+00:01:50 include everything we think a player
+00:01:52 should know but all information has a
+00:01:54 priority and the more we include the
+00:01:56 more chance there is that a player
+00:01:57 misses something important because
+00:01:59 they're distracted or confused by
+00:02:01 something less important so over the
+00:02:03 next two levels we'll use commentary
+00:02:05 nodes to point out some of the specific
+00:02:07 places where we grappled with conveying
+00:02:09 information to the player in between
+00:02:11 these nodes you'll likely be able to
+00:02:12 spot many other examples for players to
+00:02:14 find if they're interested in paying
+00:02:16 closer attention and understanding
+00:02:20 more one of the pieces of important
+00:02:23 information we struggle to convey was
+00:02:24 exactly when halflife Alex is set within
+00:02:27 the series timeline whilst we tried to
+00:02:30 it carefully in many of the world
+00:02:31 details it was never 100% successful
+00:02:33 during play tests eventually we decided
+00:02:36 it was too important to be left to the
+00:02:37 players to figure out and so we put it
+00:02:39 in our opening text scrw the citadel's
+00:02:41 incomplete state did provide us with an
+00:02:43 early opportunity to reinforce the
+00:02:45 timeline visually halflife Alex takes
+00:02:47 place 5 years before the events of
+00:02:48 halflife 2 in which the Towering Citadel
+00:02:51 represents the combined seat of power so
+00:02:53 we see here however early combine
+00:02:55 infrastructure is a cluttered mess of
+00:02:57 cables and unusual structure sprawled
+00:02:59 all over the city surrounding the
+00:03:01 citadel's construction and served as a
+00:03:03 useful indicator of the time frame we
+00:03:05 went on to reinforce this impression in
+00:03:07 other places throughout the following
+00:03:08 level combine architecture tends to be
+00:03:11 abstract in scale and form so we
+00:03:13 included some familiar visual cliches of
+00:03:15 human construction the large external
+00:03:18 scaffolds some distinction of floor
+00:03:20 levels rows of small lights and the
+00:03:22 Tiding of the silhouette into more
+00:03:23 structured vertical elements trying and
+00:03:25 strike a balance between capturing the
+00:03:27 alien nature of the Citadel whilst
+00:03:29 grounding it Construction in enough
+00:03:31 familiarity to better understand its
+00:03:33 size and state large sweeping Vistas
+00:03:36 such as this one proved an interesting
+00:03:37 challenge in virtual reality their
+00:03:39 distance from the viewer means they
+00:03:40 don't benefit from stereoscopic Vision
+00:03:42 the way that small close-up objects do
+00:03:44 because of this the small L jips on the
+00:03:46 balcony often draw the attention of the
+00:03:48 players before they' even notice the
+00:03:50 imposing structure in the distance if we
+00:03:52 move to Citadel 2 close it felt absurdly
+00:03:55 huge and difficult to take in yet placed
+00:03:58 alone on the horizon it felt
+00:04:00 two-dimensional and flat we found the
+00:04:02 solution in filling the space between
+00:04:04 the viewer and the distant structure
+00:04:06 with many scale references the city
+00:04:08 itself huge supply cables leading
+00:04:10 towards the vanishing point large
+00:04:12 repeated combine buildings heavy
+00:04:14 pollution fog careful lighting and all
+00:04:17 the animated elements especially the
+00:04:18 helicopter whose sound begins in the
+00:04:20 fade in all these were carefully
+00:04:23 composed to help draw the attention of
+00:04:24 the player to the Citadel first before
+00:04:27 letting their attention wander to take
+00:04:28 in the details of the the city and
+00:04:30 settle ultimately on the inviting items
+00:04:32 here on the
+00:04:35 balcony in these first areas of the game
+00:04:37 we grappled a lot with the density and
+00:04:39 prioritization of the information we
+00:04:40 were conveying to the player play
+00:04:42 testing showed us that players in VR
+00:04:44 were easily distracted often due to
+00:04:46 better peripheral vision such that
+00:04:47 they'd focus on one scene element while
+00:04:49 losing track of others this was
+00:04:51 exacerbated in these first rooms because
+00:04:53 players were acclimatizing to being in
+00:04:55 VR often for the first time in addition
+00:04:58 different players progress at different
+00:04:59 speeds we saw some players spend 30
+00:05:01 seconds on the opening balcony and
+00:05:03 others 30 minutes as a result we did a
+00:05:05 lot of iteration over the set of opening
+00:05:07 areas each time changing what
+00:05:09 information we tried to convey and where
+00:05:12 initially the video call from Eli took
+00:05:14 place in the later Refuge room with the
+00:05:16 snark and camcorder but players were
+00:05:18 often too engrossed in interacting with
+00:05:19 all of the detail in that room to pay
+00:05:21 attention to the conversation between
+00:05:23 Eli and Russell we moved the video call
+00:05:25 out to the starting balcony but there it
+00:05:26 distracted from the establishing shot of
+00:05:28 City 17 and the citad
+00:05:30 it also came at a time when players were
+00:05:32 still figuring out core game elements
+00:05:34 like movement and hand interaction with
+00:05:35 the world that Collision Made Simple
+00:05:38 Things hard like when to show the player
+00:05:40 a movement tool tip if they immediately
+00:05:42 started the video call eventually we
+00:05:44 settled on inserting the greenhouse
+00:05:46 between the starting balcony and The
+00:05:48 Refuge which allowed us to move the call
+00:05:50 to an area with a slightly obscured
+00:05:51 Vista and fewer interactable objects
+00:05:54 this avoided the distraction problems
+00:05:56 and ensured players were past the
+00:05:58 initial gameplay moments of of figuring
+00:06:00 out their hardware and movement setup it
+00:06:02 also had the bonus of allowing us to add
+00:06:04 further detail to the opening balcony
+00:06:06 and Alex's Refuge without fear of
+00:06:07 creating distractions from the video
+00:06:11 call conveying critical information
+00:06:14 about the state of the world the first
+00:06:16 two levels of halflife Alex also needed
+00:06:19 to demonstrate some of vr's strength
+00:06:22 conveying a sense of scale is something
+00:06:24 VR does much better than flat screens
+00:06:26 and our early play tests showed us that
+00:06:28 nothing quite so that scale more than
+00:06:30 seeing a Strider up close in addition to
+00:06:33 the visuals to fully illustrate the
+00:06:35 scale of a Strider at close range we
+00:06:37 needed to do a lot of work on its audio
+00:06:39 treatment players had strong
+00:06:41 expectations about feeling the weight
+00:06:44 power and presence of The Strider
+00:06:45 through its movements particularly as it
+00:06:48 stepped on the balcony the player was
+00:06:50 occupying in order to convey this power
+00:06:52 through sound we layered multiple sound
+00:06:54 effects allowing us to address ranges in
+00:06:56 the audio frequency spectrum and the
+00:06:59 temporal nature of those elements
+00:07:06 separately we then combined those
+00:07:08 elements in the source 2 audio engine to
+00:07:10 control them as one
+00:07:13 sound this room internally referred to
+00:07:15 as Alex's Refuge was initially the
+00:07:17 location where the Eli video call took
+00:07:19 place however once that video call was
+00:07:22 moved out to the balcony this room was
+00:07:24 freed up to solve other problems in the
+00:07:26 halflife series we've always tried to
+00:07:27 ensure that there's generally enough Nar
+00:07:29 narrative for all players to understand
+00:07:31 where they're going and why but for
+00:07:33 players who slow down and pay attention
+00:07:34 there's more detail that can lead to a
+00:07:36 greater understanding with the balcony
+00:07:38 being a place to get familiar with the
+00:07:39 game's inputs the greenhouse being where
+00:07:41 the story kicks off and The Strider
+00:07:43 there to surprise players with spectacle
+00:07:45 we decided that the Refuge could be a
+00:07:47 quiet moment for players where they
+00:07:48 could discover more narrative detail in
+00:07:50 the environment at the same time it
+00:07:52 could be a place where they can play
+00:07:53 around a bit more now that they're
+00:07:54 acclimated to being in VR spending time
+00:07:57 in The Refuge is meant to bring players
+00:07:59 in Alex's role in the resistance and her
+00:08:01 place in the world we wanted it to feel
+00:08:03 like a real Stakeout spot where Alex had
+00:08:05 been cooped up for weeks or months while
+00:08:06 planning the heist doing research on the
+00:08:08 combine the camcorder snark and
+00:08:11 whiteboards are all toys that respond to
+00:08:12 detailed interaction and reward deeper
+00:08:15 investigation giving curious players
+00:08:17 more information about the world of City
+00:08:18 17 and what Alex has been doing in
+00:08:25 iter two critical pieces of information
+00:08:28 that we needed players to understand
+00:08:30 were simple to state but not so easy to
+00:08:32 convey that players were playing as Alex
+00:08:34 Vance not the Gordon Freeman theyve
+00:08:36 played in all prior halflife games and
+00:08:39 that Alex is going to speak unlike
+00:08:41 Gordon these probably seem obvious to
+00:08:44 you now but until we focused on them it
+00:08:46 wasn't obvious to play testers ensuring
+00:08:49 that everyone realized they were playing
+00:08:51 as Alex was something we decided to hit
+00:08:53 with the biggest hammer we could and
+00:08:55 name the product after her but even with
+00:08:58 that we were very careful in Eli's video
+00:09:00 call to ensure it's reinforced
+00:09:03 immediately Olga the character
+00:09:05 introduced here was added to further
+00:09:07 drive at home by calling out when the
+00:09:09 player exits the elevator Olga is the
+00:09:11 first character the player meets in
+00:09:13 person and her dialogue here and again
+00:09:16 ahead in the alley is aimed at driving
+00:09:18 home the fact that she's conversing with
+00:09:20 the player and that the disembodied
+00:09:22 female voice the player hears is Alex
+00:09:24 speaking back this was harder to convey
+00:09:27 in Eli's video call but because it
+00:09:29 already features Russell speaking offc
+00:09:31 screen whereas in this scene there's
+00:09:34 clearly no one else around in the
+00:09:36 conversational space other than Olga and
+00:09:38 the player without Olga we found that
+00:09:41 even though they had already spoken to
+00:09:43 Eli and Russell over the video call play
+00:09:45 testers still didn't feel like they were
+00:09:48 Alex when we started Half-Life Alex we
+00:09:51 were very curious to find out how VR
+00:09:54 would impact our music design the
+00:09:57 halflife series has always used music
+00:10:00 sparingly often leaving the ambient
+00:10:02 sounds of the world to provide the audio
+00:10:05 background but it is a tool we like to
+00:10:08 use to highlight moments where the world
+00:10:10 state has changed in some important way
+00:10:13 in this case that somethings riled up
+00:10:16 the combine in our early play tests of
+00:10:19 this scene without music but with many
+00:10:21 of the other Visual and audio elements
+00:10:24 represented we found some players didn't
+00:10:27 understand that they should move along
+00:10:30 and that others became distracted by the
+00:10:32 interactive objects in the laundry we
+00:10:35 experimented with some very simple quote
+00:10:37 unquote action music to communicate the
+00:10:40 changing of the combine Threat Level as
+00:10:42 well as the story's intention for Alex
+00:10:44 to get to safety and found that players
+00:10:46 were less likely to forget their Quest
+00:10:49 and move towards their goal the music
+00:10:51 was kept simple and cinematic sounding
+00:10:54 to allow it to blend with the purposely
+00:10:57 complimentary background sounds and
+00:10:59 gently start to normalize the use of
+00:11:02 Music in VR in a familiar way this
+00:11:06 success encouraged us to use the same
+00:11:09 technique in scenes with similar
+00:11:10 requirements later in the
+00:11:14 game the remainder of this level is
+00:11:17 designed to continue informing the
+00:11:18 player about the world they're in and to
+00:11:21 support the increase in the combine's
+00:11:22 alertness we also wanted detail to make
+00:11:25 the city feel alive something that
+00:11:27 becomes much harder later on on once the
+00:11:30 player has a weapon this was tricky to
+00:11:32 design due to the challenge we're often
+00:11:34 faced with the friction between
+00:11:36 narrative State and gameplay State here
+00:11:40 the narrative implies that Alex should
+00:11:42 be making her way back to Eli as quickly
+00:11:44 and quietly as possible but
+00:11:47 gameplay-wise we're at the start of the
+00:11:49 game and players are still testing the
+00:11:51 limits of everything they can see in
+00:11:53 touch unsurprisingly play testing showed
+00:11:57 us that some players would dedicate them
+00:11:59 themselves to following the narrative
+00:12:01 and quickly move through the area While
+00:12:04 others would completely ignore the
+00:12:06 narrative and explore every nook and
+00:12:09 cranny while it's tempting to Simply
+00:12:11 remove all distractions in an attempt to
+00:12:13 unify all players towards following the
+00:12:16 narrative it would send the wrong signal
+00:12:18 about the density of our world and how
+00:12:20 the game intends to reward players for
+00:12:22 exploring it so we spent months refining
+00:12:25 this section adding changing and
+00:12:27 removing elements we tried to find the
+00:12:29 right level of narrative tension where
+00:12:31 players felt like they should be moving
+00:12:33 along but not so quickly that they can't
+00:12:36 stop the Tinker with something put
+00:12:38 enough interactive objects and narrative
+00:12:40 moments where players were always
+00:12:43 rewarded for looking around but we
+00:12:45 designed all those distractions to end
+00:12:47 quickly so we could encourage players to
+00:12:50 continue moving
+00:12:53 along in order to limit the possibility
+00:12:56 of motion sickness it could be induced
+00:12:57 by moving the player in a vehicle we
+00:12:59 initially wrote this scene to have Alex
+00:13:00 wake up after the van had already
+00:13:02 crashed players found this underwhelming
+00:13:04 however since the game seemed to be
+00:13:05 needlessly holding back an exciting
+00:13:06 moment that they could have experienced
+00:13:07 for themselves addressing this meant
+00:13:09 that we had to tackle the technical
+00:13:11 problems of moving the player
+00:13:12 comfortably in a vehicle in this van and
+00:13:14 in the train at the end of the map
+00:13:16 you'll notice that the outside world is
+00:13:17 only visible through small Windows these
+00:13:19 outside views are necessary to provide
+00:13:21 motion parallx the small window size
+00:13:23 ures that the player's field of view is
+00:13:24 always dominated by the vehicle interior
+00:13:26 which is naturally in the player Z own
+00:13:28 frame of reference
+00:13:29 this greatly reduces the occurrence of
+00:13:31 motion sickness aside from The Parallax
+00:13:33 of the outside world we use animated
+00:13:34 lighting and careful sound design to
+00:13:36 produce the effect of riding in a
+00:13:39 vehicle where the last map was focused
+00:13:42 on conveying a lot of information about
+00:13:43 the world state to the player this map
+00:13:46 is where we need to start the player's
+00:13:47 larger Quest that means the player must
+00:13:50 leave this map with an understanding of
+00:13:51 what's happened to Eli and what they're
+00:13:53 going to do about it the player also
+00:13:56 needs to meet Russell so they have a
+00:13:57 face behind all the radio dialogue
+00:13:59 throughout the game finally we need the
+00:14:02 player to collect the gravity gloves and
+00:14:04 the pistol and learn how to use them
+00:14:05 both this is a daunting list from
+00:14:08 experience we know that if we cram all
+00:14:10 that into a single scene players won't
+00:14:11 be able to remember more than a couple
+00:14:13 highlights so this map's purpose is
+00:14:15 essentially narrative pacing we need to
+00:14:17 draw apart the required events
+00:14:19 separating them with enough time and
+00:14:21 space the players could ingest and
+00:14:22 remember them at the same time we're a
+00:14:24 little under the gun play testing showed
+00:14:27 us that by now some players have been
+00:14:28 playing for 30 minutes and they're
+00:14:30 wondering when they're going to see some
+00:14:33 enemies one of the first steps the
+00:14:35 writing team took on this map was to
+00:14:37 flesh out a scene between Russell and
+00:14:38 Alex that covered all the dialogue we
+00:14:40 needed due to the fact the player is
+00:14:42 meeting Russell for the first time and
+00:14:44 that there are a significant number of
+00:14:46 infiction events that Alex and Russell
+00:14:48 need to talk about the scene ended up
+00:14:50 containing a lot of dialogue we knew
+00:14:53 there was no way we could build a scene
+00:14:54 that long without boring the player and
+00:14:56 the most important elements would be
+00:14:57 lost in the noise one of the first tools
+00:15:00 we used to address this was the
+00:15:01 introduction of Russell's drone it
+00:15:03 allowed us to take chunks of the
+00:15:04 dialogue from that original scene and
+00:15:06 deliver them throughout the area
+00:15:07 preceding the scene this meant the scene
+00:15:10 itself could skip over the infiction
+00:15:11 preliminaries and get right to the
+00:15:13 critical gold
+00:15:15 delivery in addition to delivering
+00:15:17 narrative at a consumable pace this map
+00:15:20 needed to continue communicating the
+00:15:22 state of the world outside of the
+00:15:23 quarantine Zone we also wanted players
+00:15:26 to understand when halflife Alex takes
+00:15:28 place in the larger Half-Life timeline
+00:15:31 and to see for themselves the massive
+00:15:33 scale of the Citadel under
+00:15:34 construction the power of the combine is
+00:15:37 embodied in their indifference towards
+00:15:39 Humanity they've conquered Earth with
+00:15:41 little effort and are now plundering it
+00:15:42 for their own ends they put a modicum of
+00:15:45 effort into their propaganda but it's
+00:15:47 ultimately
+00:15:48 uncaring later in halflife 2 we see
+00:15:50 Breen's attempts to talk to humanity
+00:15:52 with more seriousness but it's unclear
+00:15:55 whether that directive comes from the
+00:15:56 combine or if it's just Breen's attempts
+00:15:58 to be useful to them meanwhile the
+00:16:01 combine construction is brutally
+00:16:03 efficient the citadel's pervasive feeder
+00:16:06 cables make no attempt to fit into the
+00:16:08 lives of the residents as the combine
+00:16:10 drains the city of its power within this
+00:16:12 playground a nostalgic nod to half lifee
+00:16:15 2 this enormous cable has been run right
+00:16:17 through the mural on the wall
+00:16:19 demonstrating the combine's total lack
+00:16:21 of interest in the history behind the
+00:16:23 city great let's hear it Russell's
+00:16:26 laboratory is the first time the player
+00:16:28 is in the same room as another character
+00:16:29 and it highlights one of the main
+00:16:31 challenges we face when designing
+00:16:32 choreograph scenes in VR keeping the
+00:16:34 player and characters out of each
+00:16:36 other's space in previous half LA games
+00:16:38 we could always forcefully move the
+00:16:40 player if we really needed them out of
+00:16:41 the way we made several attempts at
+00:16:43 finding a similar solution in VR but
+00:16:46 found that it often made players feel
+00:16:47 deeply uncomfortable or disoriented so
+00:16:50 instead we designed these spaces to
+00:16:52 allow for a natural separation between
+00:16:53 the player and our characters where
+00:16:56 natural separators couldn't exist we had
+00:16:58 to restrict play players from moving
+00:16:59 into the character space removing that
+00:17:01 limitation as soon as the character had
+00:17:03 moved out of the way another challenge
+00:17:05 was balancing how often characters
+00:17:07 respond to player actions while
+00:17:08 delivering important narrative
+00:17:10 information in early experiments we
+00:17:12 allowed characters to stop mid-sentence
+00:17:14 which allowed them to respond
+00:17:16 immediately to the player and then
+00:17:17 continue on with their dialogue while
+00:17:19 technically straightforward this was
+00:17:22 incredibly difficult to execute an
+00:17:23 animation and dialogue without feeling a
+00:17:25 natural the combination of custom
+00:17:27 reactions necessary to cover the range
+00:17:29 of possible player interaction and the
+00:17:31 resulting return to narrative dialogue
+00:17:34 quickly multiplied out of control
+00:17:36 eventually we settled on a solution
+00:17:38 where we allowed only a minimum of
+00:17:39 interactions during the important
+00:17:40 narrative delivery sections and a wider
+00:17:43 range of responses to more complex
+00:17:45 reactions after the scene has completed
+00:17:47 in the case of Russell we layer subtle
+00:17:49 head facing and natural eye contact on
+00:17:52 top of his performance while he is
+00:17:53 talking with Alex then after the scene
+00:17:56 when he is typing at the computer he
+00:17:58 will respond to players trying to touch
+00:17:59 him or objects being thrown
+00:18:03 around right from our earliest
+00:18:05 experiments in VR we learn that players
+00:18:07 expect a high level of audio Fidelity
+00:18:09 even from minute interactions
+00:18:11 particularly when the sounds are meant
+00:18:12 to correspond to clearly observable
+00:18:14 visuals for instance in one of our prior
+00:18:16 games it may have been acceptable to use
+00:18:18 a generic sequence of computer key
+00:18:20 sounds when Russell was typing in VR
+00:18:22 however we know that a player can
+00:18:24 observe the animations very closely and
+00:18:26 even put their head right next to
+00:18:27 Russell's keyboard if they choose in
+00:18:29 this case players would notice a lack of
+00:18:31 onetoone Correspondence between the key
+00:18:32 press animation and sound for halflife
+00:18:35 Alex we authored a set of individual key
+00:18:37 press sounds to be driven by animation
+00:18:39 for
+00:18:41 example as Russell's fingers animate to
+00:18:43 press a key one of these key press
+00:18:45 sounds is played resulting in precise
+00:18:46 synchronization of the animation and
+00:18:53 sound targeted close your
+00:18:57 hand one frustration players May
+00:19:00 encounter in VR is having to physically
+00:19:02 bend down or reach out for objects in
+00:19:04 the virtual world especially if they
+00:19:06 have limited real world space a common
+00:19:09 solution for this is to provide a way to
+00:19:11 bring objects to the player instead of
+00:19:13 forcing the player to go to them we knew
+00:19:16 this would be an important feature in
+00:19:17 halflife Alex with its sprawling levels
+00:19:19 and players desire to explore every
+00:19:21 corner of the world we didn't want this
+00:19:24 mechanic to feel too gamey or magical so
+00:19:26 we decided to integrate it into the
+00:19:28 fiction of the game by making it a
+00:19:29 feature of the gravity gloves which are
+00:19:31 a natural precursor to the gravity gun
+00:19:33 of halflife 2 Yep this allowed us to
+00:19:36 present the mechanic as a real physical
+00:19:38 action that's enabled by a piece of
+00:19:40 infiction technology to emphasize the
+00:19:43 physicality that is unique to the medium
+00:19:45 of VR we used a physical gesture to
+00:19:48 activate the pole instead of a button
+00:19:49 press and then required the player to
+00:19:52 actually catch the object instead of
+00:19:54 automatically attaching it to the hand
+00:19:56 this made the mechanic feel more natural
+00:19:58 rooted in the fiction of the game's
+00:20:00 Universe while allowing the player to
+00:20:02 feel powerful and
+00:20:05 accomplished when a player pulls an
+00:20:07 object with the gravity gloves we use
+00:20:09 the game's physics engine to apply a
+00:20:11 launch Force to that object with a
+00:20:13 trajectory that is partially influenced
+00:20:15 by the direction of the player's pool
+00:20:17 gesture we set the object's launch
+00:20:20 velocity to result in a standard flight
+00:20:21 time from pool to catch so the player
+00:20:24 can develop a rhythm that eventually
+00:20:25 becomes automatic we want the object to
+00:20:28 arrive the hand as reliably as possible
+00:20:30 so after the initial launch we
+00:20:32 continually apply small impulse forces
+00:20:35 along the trajectory represented by the
+00:20:37 white arrows those impulses help counter
+00:20:39 gravity and compensate for collisions
+00:20:41 with obstacles along the way while
+00:20:43 continuously steering the object toward
+00:20:45 the hand which is itself a moving Target
+00:20:48 a generous cat range and subtle heptic
+00:20:50 feedback when the object enters that
+00:20:51 range virtually guarantees that it will
+00:20:53 end up in the player's hand every time
+00:20:56 even if their attention is focused
+00:20:57 elsewhere one other benefit of
+00:20:59 implementing this with physics is that
+00:21:02 we didn't need to do custom handling for
+00:21:03 an object size mass or inertia and it
+00:21:06 automatically compensated for the
+00:21:08 non-standard gravity that players
+00:21:10 encounter inside the vault at the end of
+00:21:12 the game

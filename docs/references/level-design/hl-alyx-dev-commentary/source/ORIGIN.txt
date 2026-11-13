@@ -1,0 +1,5 @@
+Half-Life: Alyx (Valve, 2020), in-game developer commentary, chapter 1 "Entanglement" (video capture of the commentary mode).
+URL: https://www.youtube.com/watch?v=cZ9qQlYo0Yk  ("HLA Developer Commentary - Chapter 1 - Entanglement", 21:14)
+Retrieved: 2026-11-13 with yt-dlp, <=480p (clip.mp4, git-ignored), English auto subtitles (clip.en.vtt), transcript.txt derived from the vtt.
+Derived: sheet-30s.jpg (whole clip), sheet-vista-0320-0435.jpg, sheet-0950-1120.jpg, sheet-1320-1535.jpg (5 s), frame-1415-alley-lit-end.jpg, frame-1545-cable-lead.jpg.
+Use: private study only. Never loaded by game code.
