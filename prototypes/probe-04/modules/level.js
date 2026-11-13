@@ -1005,7 +1005,6 @@
     if (fx) {
       try {
         if (fx.fog) Object.assign(fx.fog, { density: 0.05, falloff: 0.22, color: 0x111215, start: 2.0, noise: 0.4 });
-        if (fx.rain) Object.assign(fx.rain, { intensity: 1, wet: 0.9, opacity: 0.6, wind: [0.9, 0.5] });
       } catch (e) { console.warn('[level] fx settings', e); }
     }
   }
@@ -1132,14 +1131,7 @@
       // arcade lamps die south -> north over 4 s after intel 1
       if (arcadeSeq) { arcadeSeq.t += dt; arcadeSeq.ids.forEach((id, i) => { const e = lamps.find(l => l.id === id); if (e && arcadeSeq.t > i * 0.8 + 0.2 && e.level > 0) e.setLevel(0); }); if (arcadeSeq.t > 5) arcadeSeq.done = true; }
       if (G.world.stationGate && G.world.stationGate._update) G.world.stationGate._update(dt);
-      // rain: off indoors, thinner under the torn arcade roof; ground follows the floor height
-      if (G.fx && G.fx.rain && !shiftOn) {
-        const c = G.camera.getWorldPosition(new THREE.Vector3()); const r = G.world.indoor(c.x, c.z);
-        const want = r === 'arcade' ? 0.7 : r && r !== 'platform' ? 0 : 1;
-        G.fx.rain.intensity += (want - G.fx.rain.intensity) * Math.min(1, dt * 4);
-        if (G.fx.rain.intensity < 0.02 && want === 0) G.fx.rain.intensity = 0;
-        G.fx.rain.ground = heightAt(c.x, c.z);
-      }
+      // rain control moved to modules/weather.js (wave 3, H14)
     }
   });
 })();
