@@ -41,6 +41,8 @@
  *   'shift-start'/'shift-end' -> stops/resumes this module's rain control; 'shift-end' also opens the station gate.
  *   Emits: 'teleport' {pos, yaw, pitch} for #jump=level-* when a player module is present; 'station-gate' {open}.
  * CAPTURE HOOKS: #jump=level-start | level-arcade | level-yokocho | level-shrine | level-station | level-north
+ *   H17 guidance views (force the guide stage): level-guide0 | level-guide1 | level-guide1b | level-guide1c | level-guide2 | level-guide2b | level-guide2c | level-guide3 | level-guide3b
+ * GUIDANCE (H17): reads G.mission.intel (0-3) and lights the way to the next objective; see guidance() below.
  * RAIN: while no shift is running this module sets HorrorFX.rain.intensity to 0 indoors (1 outdoors, 0.7 in the arcade)
  *   and HorrorFX.rain.ground to the floor height under the camera.
  */
@@ -473,6 +475,7 @@
     station();
     streetProps();
     streetLamps();
+    guidance();
   }
 
   /** solid block with collider; o.inset {W,E,S,N} sets the visual face back so kit facades can stand in front */
@@ -502,7 +505,8 @@
     else { box('facadeShop', 60, 60.5, y0, y1, 0, h); box('back', 60.5, 67, y0, y1, 0, h - 0.2); box('roof', 59.7, 67, y0, y1, h, h + 0.2, { collide: false }); }
     const fx = side === 'W' ? 54 : 60, face = side === 'W' ? 'E' : 'W', dir = side === 'W' ? 1 : -1;
     // shop sign projecting into the arcade
-    if (rnd() < 0.8) { const nm = ['sign_vertical_snack', 'sign_vertical_lit', 'sign_vertical_red'][(rnd() * 3) | 0]; place(nm, fx, (y0 + y1) / 2 + R(-1.5, 1.5), face, R(4.2, 4.8), {}); }
+    // H17: no red signs on the arcade's dead shopfronts; the pharmacy's red sign is the only red in the arcade (the lure)
+    if (rnd() < 0.8) { const nm = ['sign_vertical_snack', 'sign_vertical_lit', 'sign_vertical_snack'][(rnd() * 3) | 0]; place(nm, fx, (y0 + y1) / 2 + R(-1.5, 1.5), face, R(4.2, 4.8), {}); }
     if (rnd() < 0.6) poster(fx + dir * 0.02, R(y0 + 1, y1 - 1), 1.5, face);
     if (tag === 'W3') { // the bulged shutter (trace beat): a separate mesh others can deform
       const m = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.8, 5.6, 1, 6, 8), MATS.shutter.mat); m.position.copy(V(54.06, (y0 + y1) / 2, 1.4)); m.castShadow = true; m.receiveShadow = true;
@@ -848,6 +852,103 @@
   }
 
   /* =====================================================================================
+   * GUIDANCE (H17, wave 3). The level leads the player to each objective with no marker.
+   * Mechanisms from the Half-Life: Alyx study (docs/references/level-design/hl-alyx-*):
+   *   - one saturated light toward the goal pulls by contrast (red sign at the pharmacy; red lantern trail)  [fetched: dev commentary 02:38:56]
+   *   - lamp over the door / object to use (pharmacy door, drawer, ema wall, bell rope)                      [fetched: ch1 sheets 14:55-15:45, gameplay 39:44]
+   *   - the end of the channel is lit; darkness is a gate (noodle back door lit; dead lantern stretches)    [fetched: ch1 13:40-14:30, commentary 00:49:30]
+   *   - one line motif runs along the route to the goal (a red cord, snagged at hip height)                 [fetched: ch1 15:45 cable, commentary 01:59:44]
+   *   - lights ignite one by one away from the player: motion pulls the eye                                  [fetched: commentary 01:06:29 (sound/motion turns heads)]
+   * Stages follow G.mission.intel: 0 find drop 1 (pharmacy) · 1 drop 2 (izakaya) · 2 drop 3 (ema) · 3 the bell.
+   * Every guide light is built at init (pooled like all lamps); stage changes only call setLevel / toggle visibility.
+   * ===================================================================================== */
+  const GUIDE = { stage: -1, force: -1, queue: [], cords: [] };
+  function cord(pts, stage) { // a red cord through plan points [x, y, h]; one merged mesh per stage
+    const parts = [];
+    // sag: a span hung between two raised snags droops (6 sub-segments, parabola, 8 % of the span, at most 0.45 m)
+    const sp = [pts[0]];
+    for (let i = 1; i < pts.length; i++) {
+      const p = pts[i - 1], q = pts[i], span = Math.hypot(q[0] - p[0], q[1] - p[1]);
+      if (p[2] > 0.2 && q[2] > 0.2 && span > 1) { const sag = Math.min(0.45, span * 0.08); for (let k = 1; k < 6; k++) { const t = k / 6; sp.push([p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t, p[2] + (q[2] - p[2]) * t - sag * 4 * t * (1 - t), 1]); } }
+      sp.push(q);
+    }
+    pts = sp;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const a = V(pts[i][0], pts[i][1], pts[i][2]), b = V(pts[i + 1][0], pts[i + 1][1], pts[i + 1][2]);
+      const len = a.distanceTo(b); if (len < 0.01) continue;
+      const g = new THREE.CylinderGeometry(0.013, 0.013, len, 5, 1, true);
+      const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), b.clone().sub(a).normalize());
+      g.applyMatrix4(new THREE.Matrix4().compose(a.clone().add(b).multiplyScalar(0.5), q, new THREE.Vector3(1, 1, 1))); parts.push(g);
+      if (i > 0 && !pts[i][3]) { const k = new THREE.BoxGeometry(0.05, 0.05, 0.05); k.translate(a.x, a.y, a.z); parts.push(k); } // knots where it snags
+    }
+    let nv = 0, ni = 0; for (const g of parts) { nv += g.attributes.position.count; ni += g.index.count; }
+    const pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3), idx = new Uint32Array(ni); let vo = 0, io = 0;
+    for (const g of parts) { pos.set(g.attributes.position.array, vo * 3); nor.set(g.attributes.normal.array, vo * 3); for (let i = 0; i < g.index.count; i++) idx[io + i] = g.index.getX(i) + vo; vo += g.attributes.position.count; io += g.index.count; g.dispose(); }
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); geo.setIndex(new THREE.BufferAttribute(idx, 1)); geo.computeBoundingSphere();
+    const m = new THREE.Mesh(geo, MATS.cord.mat); m.name = 'guide_cord_' + stage; m.userData.hfxSkip = true; root.add(m);
+    GUIDE.cords.push({ mesh: m, stage }); return m;
+  }
+  function guidance() {
+    // the cord: no maps, same shader as redPaint; a faint emissive so it reads in the dark like a wet thread catching light
+    mat('cord', { color: 0x8a0a10, emissive: 0x2a0204, roughness: 0.5 }, [1, 1], false);
+    const B = 6;
+    /* ---- stage 0: Yamada Pharmacy (drop 1). Seen from the underpass, 21 m up the arcade on the left. ---- */
+    // projecting red sign 薬 (two faces: south toward the spawn, north toward the plaza) + a red glow that fog does not eat
+    const signO = { w: 128, h: 384, size: 104, bg: '#9c0b12', fg: '#ece8df', vertical: true, lit: 0.95 };
+    signBoard('薬', signO, V(54.75, 22.6, 4.0), 0).scale.set(0.5, 0.75, 1);
+    signBoard('薬', signO, V(54.75, 22.58, 4.0), PI).scale.set(0.5, 0.75, 1);
+    box('metal', 54.0, 55.0, 22.57, 22.61, 4.8, 4.86, { collide: false });                 // bracket
+    lamp({ id: 'guide-pharmacy-sign', tag: 'guide', type: 'point', x: 54.85, y: 22.6, h: 4.0, color: 0xff2018, intensity: 0.9, distance: 6, pattern: 'steady', head: 'none', glowSize: 2.2, fogGlow: true });
+    // lamp over the door (white, steady) and a lamp over the drawer inside: the lit room seen through the doorway
+    box('metal', 54.0, 54.7, 22.58, 22.62, 3.05, 3.1, { collide: false });
+    lamp({ id: 'guide-pharmacy-door', tag: 'guide', type: 'spot', x: 54.6, y: 22.6, h: 2.95, tx: 0.9, ty: 0, th: 0, color: 0xe4e2dc, intensity: 5, distance: 7, angle: 0.75, pattern: 'steady', head: 'shade' });
+    lamp({ id: 'guide-pharmacy-drawer', tag: 'guide', type: 'point', x: 50.3, y: 20.3, h: 2.3, color: 0xe2e0da, intensity: 1.0, distance: 4.5, pattern: 'steady', head: 'bulb' });
+    /* ---- stage 1: the izakaya (drop 2). The arcade dies; across it the noodle shop's back room is lit; through it the
+       yokocho's lanterns ignite one by one from the back door to the izakaya. The cord runs the same way. ---- */
+    lamp({ id: 'guide-noodle-back', tag: 'guide', type: 'point', x: 66.4, y: 25.6, h: 2.3, color: 0xe0ddd5, intensity: 1.7, distance: 6, pattern: 'buzz', head: 'bulb', bulbR: 0.12 });
+    // the cord starts at the drawer the letter came from ("red thread, wound three times") and runs out of the door
+    cord([[50.3, 19.75, 1.15], [51.6, 21.5, 0.03], [53.2, 23.0, 0.03], [53.9, 23.55, 1.05], [57, 24.2, 0.7], [60.1, 24.75, 1.0], [63.6, 24.3, 1.08], [66.9, 24.95, 1.0], [68.4, 26.2, 0.04], [69.75, 28.6, 0.9],
+      [69.2, 33, 0.04], [69.8, 37.6, 1.1], [69.9, 41.05, 1.0]], 1);
+    /* ---- stage 2: the shrine (drop 3). The yokocho's north lanterns ignite toward the plaza; a string of paper lanterns
+       runs west along the plaza to the torii, which is lit from below; the ema wall has its own lamp. ---- */
+    box('black', 28, 66.5, 78.75, 78.78, 4.15, 4.18, { collide: false });                   // the wire the lanterns hang from
+    [64.5, 58.5, 52.5, 41, 35, 29.5].forEach((x, i) => {
+      const pl = place('lantern_paper', x, 78.75, 'S', 3.25, {});
+      lamp({ id: 'guide-plaza-' + (i + 1), tag: 'guide', type: 'point', x, y: 78.75, h: 3.6, color: 0xeee6d8, intensity: 0.5, distance: 5, pattern: 'candle', head: 'none', glowSize: 0.8, emissive: lanternMats(pl) });
+    });
+    lamp({ id: 'guide-torii-up', tag: 'guide', type: 'spot', x: 24, y: 77.4, h: 0.25, tx: 0, ty: 2.2, th: 4.4, color: 0xe8e2d8, intensity: 6, distance: 9, angle: 0.55, pattern: 'steady', head: 'none', glow: false });
+    lamp({ id: 'guide-ema', tag: 'guide', type: 'point', x: 35.85, y: 97.6, h: B + 2.05, color: 0xe6e2da, intensity: 1.1, distance: 4.5, pattern: 'steady', head: 'bulb' });
+    cord([[70.05, 43.1, 1.0], [67.35, 47, 0.04], [67.3, 52, 1.0], [67.3, 58, 0.04], [67.4, 64, 1.05], [67.4, 70, 0.04], [62, 76.5, 0.03], [44, 78.2, 0.03],
+      [30, 79.2, 0.03], [28.2, 80.1, 0.9], [28.2, 88, 6.95], [31, 92, B + 0.03], [35.9, 95.6, B + 1.2]], 2);
+    /* ---- stage 3: the bell. A spot from the haiden eave on the rope; the red tassel is the only red up there. ---- */
+    lamp({ id: 'guide-bell', tag: 'guide', type: 'spot', x: 24, y: 98.7, h: B + 4.5, tx: 0, ty: 1.15, th: B + 0.9, color: 0xe6e2da, intensity: 6, distance: 8, angle: 0.45, pattern: 'steady', head: 'none', glow: false });
+  }
+  // which lamps are lit at each stage (lamps not listed here are never touched by the guide)
+  const GUIDE_ON = {
+    0: ['guide-pharmacy-sign', 'guide-pharmacy-door', 'guide-pharmacy-drawer'],
+    1: ['guide-noodle-back', 'yokocho-2', 'yokocho-3', 'yokocho-4', 'izakaya-lantern'],
+    2: ['yokocho-5', 'yokocho-6', 'yokocho-w2', 'yokocho-7', 'yokocho-8', 'guide-plaza-1', 'guide-plaza-2', 'guide-plaza-3', 'guide-plaza-4', 'guide-plaza-5', 'guide-plaza-6', 'guide-torii-up', 'guide-ema'],
+    3: ['yokocho-5', 'yokocho-6', 'yokocho-w2', 'yokocho-7', 'yokocho-8', 'guide-plaza-1', 'guide-plaza-2', 'guide-plaza-3', 'guide-plaza-4', 'guide-plaza-5', 'guide-plaza-6', 'guide-torii-up', 'guide-bell']
+  };
+  const GUIDE_ALL = ['yokocho-1', 'yokocho-w1'].concat(...Object.values(GUIDE_ON));
+  function guideStage() {
+    const m = G.mission || {}; let s = typeof m.intel === 'number' ? Math.min(3, m.intel) : 0;
+    return Math.max(s, GUIDE.force);
+  }
+  /** switch to stage s: lamps of other stages go dark now; this stage's lamps ignite one by one in route order (instant = all at once) */
+  function setGuide(s, instant) {
+    GUIDE.stage = s; GUIDE.queue.length = 0; const on = GUIDE_ON[s] || [];
+    for (const id of GUIDE_ALL) { if (on.indexOf(id) >= 0) continue; const e = lamps.find(l => l.id === id); if (e) e.setLevel(0); }
+    on.forEach((id, i) => { const e = lamps.find(l => l.id === id); if (!e || e.level > 0.5) return; if (instant) e.setLevel(1); else GUIDE.queue.push({ e, at: 1.6 + i * 0.4 }); });
+    GUIDE.t = 0;
+    for (const c of GUIDE.cords) c.mesh.visible = c.stage === s;
+  }
+  function guideUpdate(dt) {
+    const s = guideStage(); if (s !== GUIDE.stage) setGuide(s, GUIDE.stage < 0);
+    if (GUIDE.queue.length) { GUIDE.t += dt; while (GUIDE.queue.length && GUIDE.queue[0].at <= GUIDE.t) GUIDE.queue.shift().e.setLevel(1); }
+  }
+
+  /* =====================================================================================
    * NAV GRAPH (plan coords; monster pathfinding)
    * ===================================================================================== */
   function buildNav() {
@@ -935,7 +1036,17 @@
     'level-station': { p: [111.5, 71.2], yaw: -0.22, pitch: 0.1 },
     'level-north': { p: [100, 13.5], yaw: 0, pitch: 0.12 },
     'level-plaza': { p: [57, 66.5], yaw: 0, pitch: 0.05 },
-    'level-canal': { p: [82, 35.5], yaw: 0, pitch: 0.0 }
+    'level-canal': { p: [82, 35.5], yaw: 0, pitch: 0.0 },
+    // H17 guidance checks: each view is "from the previous objective toward the next", with the guide stage forced
+    'level-guide0': { p: [60, 1.6], yaw: 0.1, pitch: 0.05, stage: 0 },                 // spawn: the pharmacy's red sign up the arcade
+    'level-guide1': { p: [49.6, 22.2], yaw: -PI / 2 + 0.12, pitch: 0.02, stage: 1 },  // pharmacy, after drop 1: out the door
+    'level-guide1b': { p: [56.2, 24.7], yaw: -PI / 2 + 0.1, pitch: 0.02, stage: 1 },  // arcade: through the noodle shop to its lit back door
+    'level-guide1c': { p: [68.4, 25.4], yaw: -0.05, pitch: 0.03, stage: 1 },          // noodle back door: the lantern trail
+    'level-guide2': { p: [68.6, 43.5], yaw: 0.02, pitch: 0.03, stage: 2 },            // izakaya front, after drop 2: north
+    'level-guide2b': { p: [67.5, 75.2], yaw: PI / 2 - 0.06, pitch: 0.06, stage: 2 },  // yokocho mouth: west along the plaza
+    'level-guide2c': { p: [24.4, 76.0], yaw: 0.0, pitch: 0.2, stage: 2 },             // foot of the shrine stairs
+    'level-guide3': { p: [24.2, 89.6], yaw: -0.9, pitch: 0.05, stage: 2 },           // stair top: the ema wall
+    'level-guide3b': { p: [33.5, 96.5], yaw: PI / 2 - 0.25, pitch: 0.12, stage: 3 }   // ema, after drop 3: the bell
   };
   function hasPlayer() { return G.modules.some(m => m.name === 'player' && m.ok); }
   function viewAt(j) {
@@ -1005,7 +1116,8 @@
     },
     update(dt, G) {
       if (++frameN === 30 && G.renderer && G.renderer.info) console.info('[level] frame 30: draw calls ' + G.renderer.info.render.calls + ', tris ' + G.renderer.info.render.triangles);
-      if (firstFrame) { firstFrame = false; if (G.jump && JUMPS[G.jump]) { viewAt(JUMPS[G.jump]); if (G.ui) G.ui.fade(0); } }
+      if (firstFrame) { firstFrame = false; if (G.jump && JUMPS[G.jump]) { if (JUMPS[G.jump].stage != null) { GUIDE.force = JUMPS[G.jump].stage; if (GUIDE.force >= 1 && !arcadeSeq) arcadeSeq = { t: 0, ids: ['arcade-1', 'arcade-2', 'arcade-3', 'arcade-4', 'arcade-5'] }; } viewAt(JUMPS[G.jump]); if (G.ui) G.ui.fade(0); } }
+      guideUpdate(dt);
       // light pool: nearest N of each type are visible (constant counts -> no shader recompiles)
       poolT -= dt;
       if (poolT <= 0) {
