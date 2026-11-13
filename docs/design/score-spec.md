@@ -65,6 +65,7 @@ Hunt floors intensity at 0.5 and escape at 0.6.
 - Integrated **-18 LUFS** (BS.1770) for a mixed play session (explore at 0.3-0.7 intensity plus brief hunts). Hide sits around -26, hunt peaks around -14 short-term.
 - True peak **<= -1 dBTP**: master gain, then a limiter (threshold -6 dB, ratio 20), then -1.5 dB output trim.
 - Checked by the lab's offline render (`?offline=1`), which measures LUFS and 4x-oversampled true peak in JS.
+- Measured 2026-11-12 on the 100 s tour: integrated -18.0 LUFS, true peak -2.5 dBTP (ffmpeg ebur128 gives the same figures). Segments: explore at 0.3 intensity -21.6, explore at 0.75 -17.0, tension -18.5, hunt -16.0, hide -26.7, castle -19.1, escape -15.3. 452 notes logged, 0 outside the state's scale.
 
 ## 8. What not to copy
 No melodies, arpeggio patterns, drum patterns or recognisable motifs from the references. Only the mechanisms listed in each `hints.md`. The leitmotif and threat motif above are original to this project.

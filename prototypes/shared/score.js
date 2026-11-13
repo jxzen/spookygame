@@ -51,7 +51,7 @@
     S = { ctx, bus: {}, rnd: seeded(1337), notes: [], events: [], debug: false, vnow: null, voices: [], ks: {} };
     const sr = ctx.sampleRate;
     // master: mix -> limiter -> trim(-1.5 dB) -> dest
-    S.mix = gain(0.5);
+    S.mix = gain(0.78); // calibrated: offline 100 s tour = -18 LUFS integrated, true peak < -1 dBTP
     S.lim = ctx.createDynamicsCompressor(); S.lim.threshold.value = -6; S.lim.knee.value = 0; S.lim.ratio.value = 20; S.lim.attack.value = 0.002; S.lim.release.value = 0.15;
     S.trim = gain(Math.pow(10, -1.5 / 20));
     S.mix.connect(S.lim); S.lim.connect(S.trim); S.trim.connect(dest || ctx.destination);
@@ -62,7 +62,7 @@
     S.noise = ctx.createBuffer(1, sr * 2, sr); { const nd = S.noise.getChannelData(0), rn = seeded(3); for (let i = 0; i < nd.length; i++) nd[i] = rn() * 2 - 1; }
     // buses
     S.padF = filt('lowpass', 900, 0.5); S.padF.connect(bus('pad', 0.0, 0.6)); S.padIn = S.padF;
-    bus('bass', 0.55, 0.25); bus('koto', 0.8, 0.55); bus('spicc', 0.5, 0.3); bus('perc', 0.9, 0.12); bus('fx', 0.7, 0.6); bus('drone', 0.0, 0.3);
+    bus('bass', 0.55, 0.25); bus('koto', 1.1, 0.55); bus('spicc', 0.5, 0.3); bus('perc', 0.9, 0.12); bus('fx', 0.7, 0.6); bus('drone', 0.0, 0.3);
     // the drone that never stops: D1 + D2, filtered
     const dl = filt('lowpass', 260, 0.7); dl.connect(S.bus.drone);
     [[mtof(26), 'sine', .5], [mtof(38), 'sawtooth', .18], [mtof(38) * 1.003, 'sawtooth', .18], [mtof(50), 'triangle', .08]].forEach(([f, ty, v]) => { const o = osc(ty, f), g = gain(v); o.connect(g); g.connect(dl); o.start(); });
@@ -161,10 +161,10 @@
   function effI() { return Math.max(S.I, STATES[S.state].floor); }
   function applyMix(t, hard) {
     const st = STATES[S.state], I = effI(), tc = hard ? 0.01 : 0.4;
-    const padV = st.pad === 'none' ? 0 : st.pad === 'harm' ? 0.35 : 0.42 + 0.5 * I;
+    const padV = st.pad === 'none' ? 0 : st.pad === 'harm' ? 0.45 : 0.6 + 0.6 * I;
     S.bus.pad.gain.setTargetAtTime(padV, t, tc);
     S.padF.frequency.setTargetAtTime(st.pad === 'harm' ? 6000 : 700 + 2600 * I * I, t, tc);
-    S.bus.drone.gain.setTargetAtTime(S.state === 'escape' ? 0.12 : 0.32 + 0.15 * (st.pedal ? 1 : 0), t, tc);
+    S.bus.drone.gain.setTargetAtTime(S.state === 'escape' ? 0.05 : S.state === 'hide' ? 0.12 : st.pedal ? 0.2 : 0.14, t, tc);
     S.hum.gain.setTargetAtTime(S.state === 'castle' ? 0.05 : 0, t, hard ? 0.01 : 1.2);
   }
 
@@ -240,7 +240,7 @@
       if (S.chordName === 'Eb' && beat === 0) { koto(74, t, .4); koto(81, t + spb / 2, .38); koto(74, t + spb, .42, -1, .05 + spb / 2); }
       else if (beat === 0) koto(pick(kotoTones(69, 86)), t, .3);
     } else if (name === 'hide') {
-      thump(t, .18 + .25 * I);
+      thump(t, .12 + .2 * I);
       if (bar % 4 === 2 && beat === 1 && S.rnd() < .7) koto(pick([69, 74]), t, .22, -1, .5); // held a semitone high, then released into the chord tone
     } else if (name === 'castle') {
       if (bar % 8 === 0 && beat === 0) playLine(LEIT_RETRO, t, spb * 0.75, -12, 0.4, 'koto');
@@ -296,7 +296,7 @@
     getInfo() {
       if (!S) return null; const t = nowT(); let e = null;
       for (const ev of S.events) if (ev.type === 'beat' && ev.t <= t + 0.005) e = ev;
-      return { state: e ? e.state : S.state, pending: S.pending && S.pending.name, chord: e ? e.chord : S.chordName, bar: e ? e.bar + 1 : 0, beat: e ? e.beat + 1 : 0, bpm: e ? e.bpm : STATES[S.state].bpm, intensity: +S.I.toFixed(2), key: 'D (Phrygian; koto miyako-bushi)' };
+      return { state: e ? e.state : S.state, pending: S.pending && S.pending.name, chord: e ? e.chord : S.chordName, bar: e ? e.bar + 1 : 0, beat: e ? e.beat + 1 : 0, bpm: e ? e.bpm : STATES[S.state].bpm, intensity: +S.I.toFixed(2), key: (e ? e.state : S.state) === 'escape' ? 'D Aeolian (escape lift)' : 'D Phrygian; koto D miyako-bushi' };
     },
     stop() { if (!S) return; S.running = false; releaseVoices(nowT()); S.bus.drone.gain.setTargetAtTime(0, nowT(), .3); S.hum.gain.setTargetAtTime(0, nowT(), .3); },
     _debug(on) { if (S) { S.debug = !!on; S.notes = []; } return S; },

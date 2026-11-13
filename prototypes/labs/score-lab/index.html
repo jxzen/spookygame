@@ -184,7 +184,6 @@
     const res = { seconds, renderMs, errors, integrated: loudness(chs, sr, 0, seconds), truePeak_dBTP: truePeak(chs), segments: {}, coherence: coherence(notes) };
     for (const [n, a, b] of SEGMENTS) if (b <= seconds) res.segments[n] = loudness(chs, sr, a, b).I;
     // state changes and stings must land on the beat grid (equal to a scheduled beat time)
-    const beats = new Set(S.allBeatTimes || []);
     res.stateChanges = S._stateLog; res.stingLog = S._stingLog;
     if (opts.wav) res.wav = wavBase64(chs, sr);
     return res;
