@@ -201,6 +201,7 @@ hair_strips = []
 cx, cy = 0.0, -0.06
 for k in range(44):
     ang = math.radians(-115 + k * (300 / 43)) + rnd.uniform(-0.05, 0.05)   # her right-front, over the back, to left-front
+    if abs(math.degrees(ang)) < 38: continue                 # face is left to the thin curtain
     dx, dy = math.sin(ang), -math.cos(ang)
     burnt = dx < -0.3 and dy > -0.7                      # right side burnt short, ash ends
     length = 0.10 + rnd.random() * 0.12 if burnt else 0.6 + rnd.random() * 0.8
@@ -430,7 +431,7 @@ def act_stalk():
 
 CRAWL = P(
     hips=[("x", 70)], spine1=[("x", 10)], spine2=[("x", 8)], chest=[("x", 2)],
-    neck1=[("x", -28)], neck2=[("x", -22)], head=[("x", -30), ("y", 25)],
+    neck1=[("x", -20)], neck2=[("x", -10)], head=[("x", 35), ("y", 75)],
     upper_L=[("x", -118), ("y", -28)], upper_R=[("x", -118), ("y", 28)],
     fore1_L=[("x", 34)], fore1_R=[("x", 34)], fore2_L=[("x", -38)], fore2_R=[("x", -38)],
     hand_L=[("x", 30)], hand_R=[("x", 30)], fing1_L=[("x", 25)], fing1_R=[("x", 25)],
@@ -489,10 +490,10 @@ def act_peek():
     act = new_action("Peek")
     tgt = bpy.data.objects.new("peek_target", None); scene.collection.objects.link(tgt)
     ik = arm.pose.bones["hand.R"].constraints.new("IK"); ik.target = tgt; ik.chain_count = 4
-    base = merge(HUNCH, P(_loc=(0.42, 0.28, 0.0)))
+    base = merge(HUNCH, P(_loc=(0.30, 0.28, 0.0)))
     lean0 = P()
-    lean1 = P(spine1=[("y", -14)], spine2=[("y", -18)], chest=[("y", -16)], neck1=[("y", -28), ("x", -10)],
-              neck2=[("y", -18)], head=[("y", -40), ("x", 18)], hair1=[("y", 40)], hair2=[("y", 20)])
+    lean1 = P(hips=[("y", -52)], neck1=[("x", -10)],
+              neck2=[("y", -15)], head=[("y", -40), ("x", 18)], hair1=[("y", 40)], hair2=[("y", 20)])
     curl0 = P(fing1_R=[("x", 10)], fing2_R=[("x", 10)])
     curl1 = P(fing1_R=[("y", 55)], fing2_R=[("y", 70)], hand_R=[("y", 25)])
     hidden_hand, edge_hand = (0.62, 0.30, 0.45), (-0.10, -0.53, 1.22)

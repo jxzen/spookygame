@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kagenui Viewer</title>
+<style>
+  :root { --ink: #070708; --paper: #e8e6e1; --muted: #8d8b86; --red: #b3121b; }
+  html, body { margin: 0; height: 100%; background: var(--ink); color: var(--paper); font: 14px/1.4 system-ui, sans-serif; overflow: hidden; }
+  #ui { position: fixed; left: 12px; top: 12px; display: flex; flex-wrap: wrap; gap: 6px; max-width: calc(100vw - 24px); }
+  button { background: #141416; color: var(--paper); border: 1px solid #444; padding: 6px 10px; font: inherit; cursor: pointer; }
+  button.on { border-color: var(--red); color: #fff; }
+  #info { position: fixed; left: 12px; bottom: 12px; color: var(--muted); }
+  label { display: flex; align-items: center; gap: 6px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div id="ui"></div>
+<div id="info">loading monster.glb…</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script>
+const info = document.getElementById("info"), ui = document.getElementById("ui");
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.setSize(innerWidth, innerHeight);
+renderer.outputEncoding = THREE.sRGBEncoding; renderer.shadowMap.enabled = true;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0b0b0c); scene.fog = new THREE.Fog(0x0b0b0c, 6, 16);
+const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.05, 100);
+scene.add(new THREE.HemisphereLight(0xb0b0b0, 0x101010, 0.7));
+const key = new THREE.SpotLight(0xf3f0e8, 2.2, 20, 0.6, 0.5, 1); key.position.set(-2, 4, 3); key.castShadow = true; scene.add(key);
+const rim = new THREE.PointLight(0xff2020, 0.8, 6); rim.position.set(1.5, 1.6, -1.5); scene.add(rim);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshStandardMaterial({ color: 0x1c1c1e, roughness: 0.4, metalness: 0.2 }));
+floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+const human = new THREE.Mesh(new THREE.BoxGeometry(0.45, 1.8, 0.28), new THREE.MeshStandardMaterial({ color: 0x555559 }));
+human.position.set(1.3, 0.9, 0); scene.add(human);
+// peek wall (shown for the Peek action): matches the preview wall in Blender (x>-0.05, front face z=+0.495 after Y-up)
+const wall = new THREE.Mesh(new THREE.BoxGeometry(3, 3, 0.15), new THREE.MeshStandardMaterial({ color: 0x6d6c69 }));
+wall.position.set(1.45, 1.5, 0.42); wall.visible = false; scene.add(wall);
+
+let mixer = null, actions = {}, current = null, angle = 0.5;
+const clock = new THREE.Clock();
+new THREE.GLTFLoader().load("monster.glb", gltf => {
+  const m = gltf.scene; m.traverse(o => { if (o.isMesh) { o.castShadow = true; o.frustumCulled = false; } });
+  scene.add(m);
+  mixer = new THREE.AnimationMixer(m);
+  let tris = 0; m.traverse(o => { if (o.isMesh) tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; });
+  let bones = 0; m.traverse(o => { if (o.isBone) bones++; });
+  gltf.animations.forEach(clip => {
+    actions[clip.name] = mixer.clipAction(clip);
+    const b = document.createElement("button"); b.textContent = clip.name; b.onclick = () => play(clip.name); ui.appendChild(b);
+  });
+  const lab = document.createElement("label"); lab.innerHTML = 'orbit <input type="range" min="-3.14" max="3.14" step="0.01" value="0.5">';
+  lab.querySelector("input").oninput = e => angle = +e.target.value; ui.appendChild(lab);
+  info.textContent = `${gltf.animations.length} clips · ${Math.round(tris)} tris · ${bones} bones`;
+  console.log("CLIPS", gltf.animations.map(c => c.name + ":" + c.duration.toFixed(2) + "s").join(", "), "TRIS", Math.round(tris), "BONES", bones);
+  const q = new URLSearchParams(location.search).get("clip");
+  play(q && actions[q] ? q : (actions.StalkWalk ? "StalkWalk" : gltf.animations[0].name));
+}, undefined, e => { info.textContent = "load failed: " + e; console.error("LOAD FAILED", e); });
+
+function play(name) {
+  if (current) current.fadeOut(0.2);
+  current = actions[name]; current.reset().fadeIn(0.2).play();
+  wall.visible = name === "Peek";
+  [...ui.querySelectorAll("button")].forEach(b => b.classList.toggle("on", b.textContent === name));
+  console.log("PLAY", name);
+}
+addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+(function loop() {
+  requestAnimationFrame(loop);
+  const dt = Math.min(clock.getDelta(), 0.05); if (mixer) mixer.update(dt);
+  camera.position.set(Math.sin(angle) * 4.2, 1.4, Math.cos(angle) * 4.2 + 0.2); camera.lookAt(0.3, 0.8, 0);
+  renderer.render(scene, camera);
+})();
+</script>
+</body>
+</html>
