@@ -1,0 +1,5 @@
+Retrieved 2026-11-12. Video only, <=360p, via yt-dlp. .mp4 files git-ignored.
+siren_0000-4000.mp4  https://www.youtube.com/watch?v=XGLHueBcggc  channel: P.B. Horror Gaming  "Forbidden Siren 1 | Full Game | Longplay Walkthrough No Commentary" section 0:00-40:00 (PS2)
+clip_sightjack_static_1740-1830.mp4  cut 17:40-18:30 (sightjack: static then the enemy's view)
+sheet_siren_60s_*.jpg  1 frame / 60 s; sheet_siren_20s_0730_*.jpg  7:30-20:10 at 20 s
+Write-ups found by search only (not fetched): GameSpot Siren review https://gamespot.com/reviews/siren-review/1900-6094610/ ; hardcoregaming101 Siren 2 https://www.hardcoregaming101.net/siren-2/

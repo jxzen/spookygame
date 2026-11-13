@@ -1,0 +1,5 @@
+Retrieved 2026-11-12. Video only, <=360p, via yt-dlp. .mp4 files git-ignored.
+pt_full.mp4  https://www.youtube.com/watch?v=YbaTFXlBllI  channel: Shirrako  "P.T. SILENT HILLS Gameplay Walkthrough FULL GAME (8K 60FPS) No Commentary" (23:25)
+CAVEAT: the end screen at ~23:00 credits a PC recreation ("Created by Artur Laczkowski", Patreon thanks). This footage is very likely a fan PC remake of P.T., not the original PS4 build. Layout matches the original L-shaped corridor (recall); timings may differ.
+clip_first_loop_0040-0155.mp4  cut 0:40-1:55 (one full loop of the corridor)
+sheet_pt_30s_*.jpg  1 frame / 30 s; sheet_pt_5s_0020 0:20-2:50 at 5 s; sheet_pt_5s_0900 9:00-11:30 at 5 s

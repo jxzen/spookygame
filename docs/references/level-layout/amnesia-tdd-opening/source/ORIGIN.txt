@@ -1,0 +1,11 @@
+Retrieved 2026-11-12. Video only, <=360p, via yt-dlp. .mp4 files git-ignored.
+channel: Foggy's Gaming Den (in-video watermark: FOGRAIN92), "Amnesia: The Dark Descent walkthrough part N (No commentary )"
+amnesia_p1.mp4  https://www.youtube.com/watch?v=Jc7uoNShkYw  (part 1, 18:49)
+amnesia_p2.mp4  https://www.youtube.com/watch?v=9SoMcNGW2Vc  (part 2, 19:16)
+amnesia_p3.mp4  https://www.youtube.com/watch?v=jwEA5MZU3AM  (part 3, 18:32)
+amnesia_p4.mp4  https://www.youtube.com/watch?v=FvivyxvBOd0  (part 4, 20:33)
+amnesia_p5.mp4  https://www.youtube.com/watch?v=9DBgPgK-agA  (part 5, 19:35)
+clip_first_hide_p4_1910-2025.mp4  cut from part 4, 19:10-20:25 ("You better find a place to hide")
+sheet_pN_30s_*.jpg  1 frame / 30 s per part; sheet_p3_5s_0100 = part 3 1:00-3:30 at 5 s; sheet_p4_5s_1850 = part 4 18:30-20:35 at 5 s; sheet_p5_10s = part 5 0:00-5:00 at 10 s
+frame_p1_660s.jpg, frame_p1_668s.jpg, frame_p1_840s.jpg, frame_p3_118s.jpg, frame_p4_1165s.jpg  single frames, 960 px
+A failed attempt to cut 0:00-1:05:00 from https://www.youtube.com/watch?v=hyUf3Ctx-Ck (SHN Survival Horror Network) errored; not used.

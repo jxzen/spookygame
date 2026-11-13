@@ -1,0 +1,5 @@
+Frame strips cut on 2026-11-12 from clips already in the repo (no new download):
+- ../../infinity-castle-iguro-mitsuri-enter/source/clip.mp4 <- https://www.youtube.com/watch?v=jERDWz6UX5Y "Iguro and Mitsuri Enter Infinity Castle | Demon Slayer: Kimetsu no Yaiba Infinity Castle I" (63.1 s)
+- ../../infinity-castle-trailer-crunchyroll/source/clip.mp4 <- https://www.youtube.com/watch?v=wyiZWYMilgk "Demon Slayer: Kimetsu no Yaiba Infinity Castle | Official Trailer | Crunchyroll" (148.0 s)
+Files: iguro-overview-1fps.png, iguro-strip-0to8s-6fps.png, trailer-overview-0.5fps.png (timestamps burned in).
+Study only; nothing here ships.

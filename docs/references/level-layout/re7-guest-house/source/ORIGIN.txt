@@ -1,0 +1,4 @@
+Retrieved 2026-11-12. Video only, <=360p, via yt-dlp. .mp4 files git-ignored.
+re7_full.mp4  https://www.youtube.com/watch?v=BFkYApFdV28  channel: Cerberus Gaming  "Guest House & Main House Walkthrough | Resident Evil 7 Biohazard Gameplay | No Commentary" (1:15:41, edited walkthrough: not continuous play)
+clip_mia_tape_hide_4500-4615.mp4  cut 45:00-46:15 (Mia's tape: hiding from Marguerite)
+sheet_re7_60s_*.jpg  1 frame / 60 s full video; sheet_re7_15s_2800_*.jpg  1 frame / 15 s, 28:00-55:00

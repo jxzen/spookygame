@@ -1,0 +1,5 @@
+Frame strips cut on 2026-11-12 from clips already in the repo (no new download):
+- ../../inception-city-fold/source/clip.mp4  <- https://www.youtube.com/watch?v=x9hBWnh_O6A  "Inception - Physics Scene (City Bending) [HD]" (58.9 s)
+- ../../inception-final-kick/source/clip.mp4 <- https://www.youtube.com/watch?v=IA5YlOXJ_PQ  "Inception (2010) - The Final Kick Scene (9/10) | Movieclips" (167.3 s)
+Files: cityfold-overview-1fps.png, cityfold-strip-29to41s-4fps.png, finalkick-overview-0.5fps.png (timestamps burned in).
+Study only; nothing here ships.

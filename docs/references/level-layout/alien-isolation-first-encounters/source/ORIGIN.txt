@@ -1,0 +1,9 @@
+Retrieved 2026-11-12. Video only, <=360p, via yt-dlp. .mp4 files git-ignored.
+channel: MKIceAndFire, "Alien Isolation Walkthrough Part N [1080p HD PC ULTRA] ... - No Commentary"
+alien_p1.mp4  https://www.youtube.com/watch?v=goJaqtAnJFQ  (part 1, 55:25)
+alien_p2.mp4  https://www.youtube.com/watch?v=reCTDOrj_e0  (part 2, 17:03)
+alien_p3.mp4  https://www.youtube.com/watch?v=KPEHB7Ptteo  (part 3, 17:26)
+alien_p4.mp4  https://www.youtube.com/watch?v=fuP4nsFEHr0  (part 4, 20:41)
+clip_axel_reveal_5444-5514.mp4  cut from part 1, 54:44-55:14 (first reveal: drool, tail)
+sheets: sheet_p1_60s (part 1 at 60 s), sheet_p1_10s_4500 (part 1 45:00-55:25 at 10 s), sheet_p1_2s_5420 (54:20-55:20 at 2 s), sheet_p1_1s_5458_reveal (54:58-55:13 at 1 s), sheet_p2_20s, sheet_p2_2s_0000 (part 2 first 60 s), sheet_p3_20s, sheet_p4_20s
+Design write-up fetched: https://www.gamedeveloper.com/design/the-perfect-organism-the-ai-of-alien-isolation (Tommy Thompson, Game Developer)

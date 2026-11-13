@@ -1,0 +1,5 @@
+URL: https://www.youtube.com/watch?v=xBXHPmQ_Ejo
+Title: P.T. (Silent Hills) | Native PC | Complete Playthrough No Commentary [4K/60fps]  (channel: Silent Hillside; a fan PC remake of Kojima Productions' P.T., 2014)
+Fetched: 2026-11-12 with yt-dlp, section 0-300 s, <=720p -> clip.mp4
+Files: clip.mp4, overview-every5s.png, strip-170to202s-1fps.png
+Study only; nothing here ships.

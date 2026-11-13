@@ -1,0 +1,7 @@
+Retrieved 2026-11-12. Video only, <=360p, via yt-dlp. All .mp4 files are git-ignored study copies (never shipped).
+sh2r_0000-4500.mp4  https://www.youtube.com/watch?v=-0obZuRI5oY  channel: Gamer's Little Playground  "SILENT HILL 2 REMAKE Full Gameplay Walkthrough / No Commentary" section 0:00-45:00
+clip_fog_figure_1755-1835.mp4  cut from the above, 17:55-18:35 (figure in the fog, blood trail)
+sheet_sh2r_60s_*.jpg  contact sheets, 1 frame / 60 s, 0:00-45:00
+sheet_sh2r_10s_1600_*.jpg  1 frame / 10 s, 16:00-26:00
+sheet_sh2r_10s_2600_01.jpg  1 frame / 10 s, 26:00-31:00
+Timestamps on sheets are video time of the downloaded section (= source video time, section started at 0:00).

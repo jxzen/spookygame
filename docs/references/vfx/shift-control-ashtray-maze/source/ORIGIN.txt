@@ -1,0 +1,5 @@
+URL: https://www.youtube.com/watch?v=X3QMX46GbsM
+Title: Ashtray Maze / Take Control - No Commentary Gameplay [CONTROL]  (channel: Checkmate; Control, Remedy Entertainment 2019)
+Fetched: 2026-11-12 with yt-dlp, section 0-390 s, <=720p -> clip.mp4 (387 s)
+Files: clip.mp4, overview-every5s.png, strip-85to117s-2fps.png
+Study only; nothing here ships.

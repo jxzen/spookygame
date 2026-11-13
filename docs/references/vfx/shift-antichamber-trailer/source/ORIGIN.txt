@@ -1,0 +1,5 @@
+URL: https://www.youtube.com/watch?v=aGsnm2nOnso
+Title: Antichamber Launch Trailer - January 31st, 2013 on Steam  (channel: Demruth)
+Fetched: 2026-11-12 with yt-dlp, full trailer (102 s), <=720p -> clip.mp4
+Files: clip.mp4, overview-every2s.png
+Study only; nothing here ships.
